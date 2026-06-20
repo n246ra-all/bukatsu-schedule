@@ -203,7 +203,7 @@ input[type=radio]{width:22px;height:22px;cursor:pointer;accent-color:#378ADD;dis
           <label class="row-item" id="dMorningRow">
             <input type="checkbox" id="dMorning" style="width:22px;height:22px;accent-color:#BA7517;flex-shrink:0">
             <div>
-              <div class="row-label">8:00 集合</div>
+              <div class="row-label">8:00</div>
               <div class="row-sub">朝練あり</div>
             </div>
           </label>
@@ -434,7 +434,7 @@ function renderTodayPanel() {
     } else {
       if (r.morning) {
         const item = document.createElement('div'); item.className = 'today-panel-item';
-        item.innerHTML = '<div class="today-panel-dot" style="background:#BA7517"></div><span>朝練あり（8:00 集合）</span>';
+        item.innerHTML = '<div class="today-panel-dot" style="background:#BA7517"></div><span>朝練あり（8:00）</span>';
         body.appendChild(item);
       }
       if (r.evening) {
