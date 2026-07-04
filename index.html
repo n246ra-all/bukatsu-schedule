@@ -479,15 +479,19 @@ function show(id) {
 // ===== 認証 =====
 document.getElementById('googleLoginBtn').addEventListener('click', async () => {
   const provider = new firebase.auth.GoogleAuthProvider();
-  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
   try {
-    if (isMobile) {
-      await auth.signInWithRedirect(provider);
-    } else {
-      await auth.signInWithPopup(provider);
-    }
+    await auth.signInWithPopup(provider);
   } catch(e) {
-    showToast('ログインに失敗しました');
+    // ポップアップが失敗したらリダイレクト方式にフォールバック
+    if (e.code === 'auth/popup-blocked' || e.code === 'auth/popup-closed-by-user') {
+      try {
+        await auth.signInWithRedirect(provider);
+      } catch(e2) {
+        showToast('ログインに失敗しました');
+      }
+    } else {
+      showToast('ログインに失敗しました：' + (e.code || e.message));
+    }
   }
 });
 
