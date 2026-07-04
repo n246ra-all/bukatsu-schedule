@@ -22,7 +22,6 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
 .btn-back{border:none;background:none;cursor:pointer;font-size:15px;color:#378ADD;display:flex;align-items:center;gap:2px;padding:4px 0;min-width:50px}
 .btn-back:active{opacity:.6}
 
-/* トグル — ヒントなし版 */
 .toggle-bar{display:flex;align-items:center;justify-content:center;gap:12px;padding:8px 16px;background:#f2f2f7;border-bottom:0.5px solid #e0e0e5;flex-shrink:0}
 .toggle-lbl{font-size:13px;color:#8e8e93;font-weight:500}
 .toggle-lbl.on{color:#1c1c1e;font-weight:600}
@@ -31,7 +30,6 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
 .toggle-thumb{position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#fff;transition:left .25s;box-shadow:0 2px 6px rgba(0,0,0,.2)}
 .toggle-track.on .toggle-thumb{left:22px}
 
-/* 同期状態 */
 .sync-bar{display:flex;align-items:center;justify-content:center;gap:6px;padding:4px;font-size:11px;flex-shrink:0}
 .sync-dot{width:7px;height:7px;border-radius:50%;background:#ccc;flex-shrink:0}
 .sync-dot.ok{background:#34c759}
@@ -41,6 +39,13 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
 
 .screen{display:none;flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .screen.active{display:flex;flex-direction:column}
+
+/* ===== ログイン画面 ===== */
+.login-wrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;gap:28px}
+.login-logo{font-size:22px;font-weight:700;color:#378ADD;text-align:center;line-height:1.4}
+.login-sub{font-size:14px;color:#8e8e93;text-align:center;line-height:1.6}
+.google-btn{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;padding:14px 20px;background:#fff;border:1px solid #e0e0e5;border-radius:12px;font-size:15px;color:#1c1c1e;cursor:pointer}
+.google-btn:active{background:#f2f2f7}
 
 /* ===== 月カレンダー ===== */
 .cal-dow-row{display:grid;grid-template-columns:repeat(7,1fr);padding:6px 8px 2px;flex-shrink:0}
@@ -62,8 +67,14 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
 .dot-m{background:#BA7517}
 .dot-e{background:#378ADD}
 
-/* 本日・翌日のミニ予定 */
-.today-panel{margin:0 12px 12px;border-radius:12px;overflow:hidden;border:0.5px solid #e0e0e5;flex-shrink:0}
+/* 月下部ショートカットボタン */
+.month-btns{display:flex;gap:8px;margin:4px 10px 10px;flex-shrink:0}
+.month-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:9px 6px;background:#fff;border:0.5px solid #e0e0e5;border-radius:10px;font-size:12px;color:#1c1c1e;cursor:pointer}
+.month-btn:active{background:#f2f2f7}
+.month-btn-icon{font-size:16px;color:#378ADD}
+
+/* 本日〜7日間パネル */
+.today-panel{margin:0 10px 12px;border-radius:12px;overflow:hidden;border:0.5px solid #e0e0e5;flex-shrink:0}
 .today-panel-row{display:flex;align-items:stretch;border-bottom:0.5px solid #e0e0e5}
 .today-panel-row:last-child{border-bottom:none}
 .today-panel-label{width:52px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 4px;background:#f9f9fb;border-right:0.5px solid #e0e0e5}
@@ -86,20 +97,17 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
 .dh-badge{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:50%;background:#378ADD;color:#fff;font-size:8px;font-weight:600;margin-top:2px}
 .dh-badge.z{background:transparent;color:transparent}
 
-/* 編集モードのセル */
 .wcell{padding:24px 2px;min-height:70px}
 .wcell.mon-on{background:#fff3e0}
 .wcell.eve-on{background:#e8f4fd}
 
-/* 閲覧モードのセル — 罫線強調 */
-.vcell{padding:0;min-height:70px;border:0.5px solid #e0e0e5}
+.vcell{padding:0;min-height:70px;border:1px solid #c8c8d0}
 .vcell-inner{width:100%;height:100%;min-height:70px;display:flex;align-items:center;justify-content:center}
 .vcell.mon-on{background:#fff3e0;border-color:#f0c070}
 .vcell.eve-on{background:#e8f4fd;border-color:#90c8f0}
 
 .divrow td{background:#e8e8ee;padding:5px 6px;font-size:11px;color:#666;text-align:left;font-weight:700;border-top:1.5px solid #c8c8d0;border-bottom:1.5px solid #c8c8d0;letter-spacing:.5px}
 
-/* 夕練なし行（週表示編集時） */
 .clear-row td{background:#f9f9fb;padding:0}
 .clear-cell{padding:6px 2px}
 .clear-cell-btn{font-size:10px;color:#8e8e93;background:none;border:0.5px solid #d0d0d8;border-radius:6px;padding:3px 0;width:90%;cursor:pointer;display:block;margin:0 auto}
@@ -125,6 +133,41 @@ input[type=radio]{width:22px;height:22px;cursor:pointer;accent-color:#378ADD;dis
 .clear-btn:active{background:#f2f2f7}
 .view-lock{display:flex;align-items:center;gap:6px;padding:10px 14px;background:#fff3cd;border-radius:10px;font-size:12px;color:#856404;border:0.5px solid #ffc107}
 
+/* ===== 通知設定画面 ===== */
+.notif-body{padding:0 0 40px;flex:1;overflow-y:auto}
+.settings-section-hd{font-size:11px;font-weight:600;color:#8e8e93;letter-spacing:.5px;padding:16px 14px 6px;text-transform:uppercase}
+.settings-card{background:#fff;border-radius:12px;margin:0 12px 4px;border:0.5px solid #e0e0e5;overflow:hidden}
+.settings-row{display:flex;align-items:center;padding:13px 14px;border-bottom:0.5px solid #f0f0f5;gap:10px}
+.settings-row:last-child{border-bottom:none}
+.settings-row-label{flex:1}
+.settings-row-title{font-size:15px;color:#1c1c1e}
+.settings-row-sub{font-size:12px;color:#8e8e93;margin-top:2px}
+.sm-toggle{width:44px;height:26px;border-radius:13px;background:#e0e0e5;cursor:pointer;position:relative;border:none;transition:background .25s;flex-shrink:0}
+.sm-toggle.on{background:#378ADD}
+.sm-toggle-thumb{position:absolute;top:2px;left:2px;width:22px;height:22px;border-radius:50%;background:#fff;transition:left .2s;box-shadow:0 1px 4px rgba(0,0,0,.2)}
+.sm-toggle.on .sm-toggle-thumb{left:20px}
+.time-picker{background:#f2f2f7;border:none;border-radius:8px;padding:6px 10px;font-size:14px;color:#1c1c1e;cursor:pointer;-webkit-appearance:none;appearance:none}
+.line-target-wrap{display:flex;gap:6px;padding:0 14px 12px}
+.line-target-btn{flex:1;padding:8px;border-radius:8px;font-size:12px;cursor:pointer;border:0.5px solid #e0e0e5;background:#f9f9fb;color:#8e8e93}
+.line-target-btn.active{background:#e8f4fd;border-color:#378ADD;color:#378ADD;font-weight:600}
+.line-target-btn:active{opacity:.7}
+.group-id-wrap{padding:0 14px 12px}
+.group-id-input{width:100%;padding:10px 12px;border:0.5px solid #e0e0e5;border-radius:8px;font-size:14px;color:#1c1c1e;background:#fff}
+.group-id-input:focus{outline:none;border-color:#378ADD}
+.save-notif-btn{display:block;width:calc(100% - 24px);margin:16px 12px 0;padding:14px;background:#378ADD;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer}
+.save-notif-btn:active{opacity:.8}
+.notif-preview-box{margin:12px 12px 0;padding:12px 14px;background:#f0f6ff;border-radius:12px;border-left:3px solid #378ADD}
+.notif-preview-app{font-size:10px;color:#8e8e93;margin-bottom:4px}
+.notif-preview-title{font-size:13px;font-weight:600;color:#1c1c1e;margin-bottom:2px}
+.notif-preview-body{font-size:12px;color:#3c3c43}
+.notif-preview-line{display:inline-flex;align-items:center;gap:4px;margin-top:6px;background:#06c755;border-radius:6px;padding:4px 10px;font-size:11px;color:#fff;border:none;cursor:default}
+.account-info{display:flex;align-items:center;gap:10px;padding:13px 14px}
+.account-avatar{width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0}
+.account-avatar-fallback{width:36px;height:36px;border-radius:50%;background:#378ADD;color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600;flex-shrink:0}
+.signout-btn{padding:6px 14px;border:0.5px solid #e0e0e5;border-radius:8px;background:#fff;font-size:12px;color:#ff3b30;cursor:pointer}
+.signout-btn:active{background:#f2f2f7}
+.notif-permission-warn{margin:0 12px;padding:10px 12px;background:#fff3cd;border-radius:10px;font-size:12px;color:#856404;border:0.5px solid #ffc107;line-height:1.5}
+
 #loadingScreen{position:fixed;inset:0;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;z-index:999}
 .spinner{width:36px;height:36px;border:3px solid #e0e0e5;border-top-color:#378ADD;border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -147,8 +190,27 @@ input[type=radio]{width:22px;height:22px;cursor:pointer;accent-color:#378ADD;dis
 
 <div id="app" style="display:none">
 
-  <!-- 月カレンダー -->
-  <div id="scMonth" class="screen active">
+  <!-- ===== ログイン画面 ===== -->
+  <div id="scLogin" class="screen">
+    <div class="login-wrap">
+      <div>
+        <div class="login-logo">簿記部<br>スケジュール管理</div>
+      </div>
+      <div class="login-sub">Googleアカウントでログインしてください。<br>ホーム画面に追加すると通知が届きます。</div>
+      <button class="google-btn" id="googleLoginBtn">
+        <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/>
+          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+        </svg>
+        Googleでログイン
+      </button>
+    </div>
+  </div>
+
+  <!-- ===== 月カレンダー ===== -->
+  <div id="scMonth" class="screen">
     <div style="text-align:center;padding:10px 12px 2px;font-size:15px;font-weight:700;color:#378ADD;letter-spacing:.5px;flex-shrink:0;padding-top:calc(10px + env(safe-area-inset-top))">簿記部スケジュール管理</div>
     <div class="topbar" style="padding-top:8px">
       <button class="btn-icon" id="prevMonth">&#8249;</button>
@@ -170,11 +232,20 @@ input[type=radio]{width:22px;height:22px;cursor:pointer;accent-color:#378ADD;dis
       <div class="cal-dow sat">土</div>
     </div>
     <div class="cal-days" id="calDays"></div>
-    <!-- 本日・翌日パネル -->
+    <!-- 通知設定・アカウントボタン -->
+    <div class="month-btns">
+      <button class="month-btn" onclick="goNotifSettings()">
+        <span class="month-btn-icon">🔔</span> 通知設定
+      </button>
+      <button class="month-btn" onclick="goAccountSettings()">
+        <span class="month-btn-icon">👤</span> アカウント
+      </button>
+    </div>
+    <!-- 7日間パネル -->
     <div class="today-panel" id="todayPanel"></div>
   </div>
 
-  <!-- 週カレンダー -->
+  <!-- ===== 週カレンダー ===== -->
   <div id="scWeek" class="screen">
     <div class="topbar">
       <button class="btn-back" onclick="backToMonth()">&#8249; 月</button>
@@ -187,7 +258,7 @@ input[type=radio]{width:22px;height:22px;cursor:pointer;accent-color:#378ADD;dis
     <div style="padding:10px 16px;font-size:12px;color:#8e8e93;flex-shrink:0">日付をタップすると1日表示に切り替わります</div>
   </div>
 
-  <!-- 1日表示 -->
+  <!-- ===== 1日表示 ===== -->
   <div id="scDay" class="screen">
     <div class="topbar">
       <button class="btn-back" onclick="backToWeek()">&#8249; 週</button>
@@ -220,11 +291,129 @@ input[type=radio]{width:22px;height:22px;cursor:pointer;accent-color:#378ADD;dis
     </div>
   </div>
 
+  <!-- ===== 通知設定画面 ===== -->
+  <div id="scNotif" class="screen">
+    <div class="topbar">
+      <button class="btn-back" onclick="backToMonth()">&#8249; 戻る</button>
+      <div class="topbar-title">通知設定</div>
+      <div style="min-width:50px"></div>
+    </div>
+    <div class="notif-body">
+
+      <div class="settings-section-hd">アカウント</div>
+      <div class="settings-card">
+        <div class="account-info" id="accountInfoNotif">
+          <div class="account-avatar-fallback" id="accountAvatarNotif">?</div>
+          <div style="flex:1">
+            <div style="font-size:14px;font-weight:600;color:#1c1c1e" id="accountNameNotif">読み込み中...</div>
+            <div style="font-size:12px;color:#8e8e93" id="accountEmailNotif"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-section-hd">プッシュ通知</div>
+      <div id="notifPermWarn" class="notif-permission-warn" style="display:none">
+        ⚠️ 通知が許可されていません。<br>iPhoneの「設定 → Safari → 通知」または「設定 → 部活」から通知を許可してください。
+      </div>
+      <div class="settings-card">
+        <div class="settings-row">
+          <div class="settings-row-label">
+            <div class="settings-row-title">通知を受け取る</div>
+            <div class="settings-row-sub">前日に予定をお知らせ</div>
+          </div>
+          <button class="sm-toggle" id="notifToggle" onclick="toggleNotif()">
+            <div class="sm-toggle-thumb"></div>
+          </button>
+        </div>
+        <div class="settings-row" id="notifTimeRow">
+          <div class="settings-row-label">
+            <div class="settings-row-title">通知時間</div>
+            <div class="settings-row-sub">前日のこの時刻に通知</div>
+          </div>
+          <select class="time-picker" id="notifTime">
+            <option value="18:00">18:00</option>
+            <option value="18:30">18:30</option>
+            <option value="19:00">19:00</option>
+            <option value="19:30">19:30</option>
+            <option value="20:00">20:00</option>
+            <option value="20:30">20:30</option>
+            <option value="21:00" selected>21:00</option>
+            <option value="21:30">21:30</option>
+            <option value="22:00">22:00</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="settings-section-hd">LINE連携</div>
+      <div class="settings-card">
+        <div class="settings-row">
+          <div class="settings-row-label">
+            <div class="settings-row-title">通知タップでLINEを開く</div>
+            <div class="settings-row-sub">通知タップ時にLINEを起動</div>
+          </div>
+          <button class="sm-toggle" id="lineToggle" onclick="toggleLine()">
+            <div class="sm-toggle-thumb"></div>
+          </button>
+        </div>
+        <div id="lineTargetArea" style="display:none">
+          <div class="line-target-wrap">
+            <button class="line-target-btn active" id="lineHomeBtn" onclick="setLineTarget('home')">LINEホーム</button>
+            <button class="line-target-btn" id="lineGroupBtn" onclick="setLineTarget('group')">グループ指定</button>
+          </div>
+          <div class="group-id-wrap" id="lineGroupIdWrap" style="display:none">
+            <div style="font-size:12px;color:#8e8e93;margin-bottom:6px">LINEグループIDを入力</div>
+            <input class="group-id-input" type="text" id="lineGroupId" placeholder="例: Cabcd1234…">
+            <div style="font-size:11px;color:#8e8e93;margin-top:4px">グループIDはLINE Developersまたはチャットボットで確認できます</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-section-hd">通知プレビュー</div>
+      <div class="notif-preview-box" id="notifPreviewBox">
+        <div class="notif-preview-app">📅 部活スケジュール</div>
+        <div class="notif-preview-title">明日の予定があります</div>
+        <div class="notif-preview-body">朝練あり（8:00）・夕練 20:00 終了</div>
+        <div class="notif-preview-line" id="notifPreviewLine" style="display:none">
+          LINE を開く
+        </div>
+      </div>
+
+      <button class="save-notif-btn" onclick="saveNotifSettings()">この設定で保存する</button>
+
+      <div style="margin:16px 14px 0;padding:10px 12px;background:#f9f9fb;border-radius:10px;font-size:11px;color:#8e8e93;line-height:1.6">
+        ※ 通知はホーム画面に追加したSafari（PWA）のみ受信できます。<br>
+        ※ この端末だけに設定が保存されます。
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== アカウント設定画面 ===== -->
+  <div id="scAccount" class="screen">
+    <div class="topbar">
+      <button class="btn-back" onclick="backToMonth()">&#8249; 戻る</button>
+      <div class="topbar-title">アカウント</div>
+      <div style="min-width:50px"></div>
+    </div>
+    <div style="padding:20px 12px">
+      <div class="settings-card">
+        <div class="account-info">
+          <div id="accountAvatarMain" class="account-avatar-fallback">?</div>
+          <div style="flex:1">
+            <div style="font-size:15px;font-weight:600;color:#1c1c1e" id="accountNameMain">-</div>
+            <div style="font-size:12px;color:#8e8e93" id="accountEmailMain"></div>
+          </div>
+        </div>
+      </div>
+      <button class="save-notif-btn" style="background:#ff3b30;margin-top:24px" onclick="signOut()">ログアウト</button>
+    </div>
+  </div>
+
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js"></script>
 
 <script>
 const firebaseConfig = {
@@ -236,9 +425,14 @@ const firebaseConfig = {
   appId:             "1:1049363882732:web:9d234aa0fa18fd54b0fbc9"
 };
 
+// ★ Firebase Console → プロジェクト設定 → Cloud Messaging → ウェブプッシュ証明書 → キーペアをコピーしてここに貼る
+const VAPID_KEY = 'REPLACE_WITH_YOUR_VAPID_KEY';
+
 firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db   = firebase.firestore();
+const auth      = firebase.auth();
+const db        = firebase.firestore();
+let   messaging = null;
+try { messaging = firebase.messaging(); } catch(e) {}
 
 const TIMES_E   = ['19:30','20:00','20:30','21:00','21:30','22:00'];
 const DOW       = ['日','月','火','水','木','金','土'];
@@ -253,9 +447,13 @@ const state = {
   localCache: {},
   unsubscribe: null,
   syncVersion: 0,
+  user: null,
+  fcmToken: localStorage.getItem('fcmToken') || null,
+  notifSettings: { notifEnabled: false, notifTime: '21:00', lineEnabled: false, lineTarget: 'home', lineGroupId: '' },
 };
 const today = new Date();
 
+// ===== ユーティリティ =====
 function showToast(msg, type = 'err') {
   const t = document.createElement('div');
   t.className = 'toast ' + type;
@@ -273,6 +471,59 @@ function pruneCache() {
   }
 }
 
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ===== 認証 =====
+document.getElementById('googleLoginBtn').addEventListener('click', async () => {
+  const provider = new firebase.auth.GoogleAuthProvider();
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  try {
+    if (isMobile) {
+      await auth.signInWithRedirect(provider);
+    } else {
+      await auth.signInWithPopup(provider);
+    }
+  } catch(e) {
+    showToast('ログインに失敗しました');
+  }
+});
+
+function updateAccountUI(user) {
+  if (!user) return;
+  const name  = user.displayName || 'ユーザー';
+  const email = user.email || '';
+  const initial = name.charAt(0).toUpperCase();
+  ['Main','Notif'].forEach(suf => {
+    const av = document.getElementById('accountAvatar' + suf);
+    if (av) { av.textContent = initial; }
+    const nm = document.getElementById('accountName' + suf);
+    if (nm) nm.textContent = name;
+    const em = document.getElementById('accountEmail' + suf);
+    if (em) em.textContent = email;
+  });
+  if (user.photoURL) {
+    ['Main','Notif'].forEach(suf => {
+      const av = document.getElementById('accountAvatar' + suf);
+      if (!av) return;
+      const img = document.createElement('img');
+      img.src = user.photoURL;
+      img.className = 'account-avatar';
+      img.id = av.id;
+      av.parentNode.replaceChild(img, av);
+    });
+  }
+}
+
+async function signOut() {
+  if (!confirm('ログアウトしますか？')) return;
+  await auth.signOut();
+  show('scLogin');
+}
+
+// ===== Firestore同期 =====
 function startSync(y, m) {
   if (state.unsubscribe) { state.unsubscribe(); state.unsubscribe = null; }
   const version = ++state.syncVersion;
@@ -332,11 +583,6 @@ function badgeCount(y, m, d) {
   return (r.morning ? 1 : 0) + (r.evening ? 1 : 0);
 }
 
-function show(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-}
-
 function refreshCurrentView() {
   renderMonth();
   const cur = document.querySelector('.screen.active');
@@ -345,7 +591,7 @@ function refreshCurrentView() {
   if (cur.id === 'scDay')  renderDay();
 }
 
-// ---- トグル ----
+// ===== トグル =====
 document.getElementById('toggleBtn').addEventListener('click', () => {
   state.isEdit = !state.isEdit;
   document.getElementById('toggleBtn').className = 'toggle-track' + (state.isEdit ? ' on' : '');
@@ -369,7 +615,7 @@ function updateModeLbls() {
   if (lock) lock.style.display = state.isEdit ? 'none' : 'flex';
 }
 
-// ---- 月カレンダー ----
+// ===== 月カレンダー =====
 function renderMonth() {
   document.getElementById('monthTitle').textContent = state.curYear + '年' + state.curMonth + '月';
   const grid = document.getElementById('calDays');
@@ -404,31 +650,24 @@ function renderMonth() {
   renderTodayPanel();
 }
 
-// ---- 本日・翌日パネル ----
+// ===== 7日間パネル =====
 function renderTodayPanel() {
   const panel = document.getElementById('todayPanel');
   if (!panel) return;
   panel.innerHTML = '';
 
-  const targets = [];
   for (let i = 0; i < 7; i++) {
-    const date = new Date(today.getFullYear(), today.getMonth(), today.getDate() + i);
+    const date  = new Date(today.getFullYear(), today.getMonth(), today.getDate() + i);
     const label = i === 0 ? '本日' : i === 1 ? '翌日' : (i + 1) + '日後';
-    targets.push({ label, date });
-  }
-
-  targets.forEach(({ label, date }) => {
     const y = date.getFullYear(), m = date.getMonth() + 1, d = date.getDate();
     const dow = date.getDay();
     const r   = getDayData(y, m, d);
     const dowColor = dow === 0 ? '#e24b4a' : dow === 6 ? '#378ADD' : '#8e8e93';
 
     const row = document.createElement('div'); row.className = 'today-panel-row';
-
     const lbl = document.createElement('div'); lbl.className = 'today-panel-label';
     lbl.innerHTML = '<div class="today-panel-date" style="color:' + dowColor + '">' + m + '/' + d + '</div>' +
       '<div class="today-panel-dow" style="color:' + dowColor + '">' + label + '（' + DOW[dow] + '）</div>';
-
     const body = document.createElement('div'); body.className = 'today-panel-body';
 
     if (!r.morning && !r.evening) {
@@ -446,13 +685,12 @@ function renderTodayPanel() {
         body.appendChild(item);
       }
     }
-
     row.appendChild(lbl); row.appendChild(body);
     panel.appendChild(row);
-  });
+  }
 }
 
-// ---- 月ナビ ----
+// ===== 月ナビ =====
 document.getElementById('prevMonth').addEventListener('click', () => {
   state.curMonth--; if (state.curMonth < 1) { state.curMonth = 12; state.curYear--; }
   startSync(state.curYear, state.curMonth);
@@ -462,7 +700,7 @@ document.getElementById('nextMonth').addEventListener('click', () => {
   startSync(state.curYear, state.curMonth);
 });
 
-// ---- 週カレンダーへ ----
+// ===== 週カレンダー =====
 function goWeek(d) {
   const dow = new Date(state.curYear, state.curMonth - 1, d).getDay();
   const dt  = new Date(state.curYear, state.curMonth - 1, d);
@@ -511,11 +749,10 @@ function renderWeek() {
     tbody.appendChild(tr);
   };
 
-  // 朝練行
   addDiv('朝練');
   const mrow = document.createElement('tr');
   const mt0  = document.createElement('td'); mt0.className = 'tcol'; mt0.textContent = '8:00'; mrow.appendChild(mt0);
-  days.forEach((day, ci) => {
+  days.forEach((day) => {
     const r = getDayData(day.y, day.m, day.d);
     if (state.isEdit) {
       const td = document.createElement('td'); td.className = 'wcell' + (r.morning ? ' mon-on' : '');
@@ -533,7 +770,6 @@ function renderWeek() {
   });
   tbody.appendChild(mrow);
 
-  // 夕練行
   addDiv('夕練終了');
   TIMES_E.forEach(t => {
     const tr  = document.createElement('tr');
@@ -557,7 +793,6 @@ function renderWeek() {
     tbody.appendChild(tr);
   });
 
-  // 夕練なし行（編集モードのみ）
   if (state.isEdit) {
     const cr = document.createElement('tr'); cr.className = 'clear-row';
     const ctd0 = document.createElement('td'); ctd0.className = 'tcol'; ctd0.style.fontSize = '10px'; ctd0.textContent = 'なし'; cr.appendChild(ctd0);
@@ -572,11 +807,10 @@ function renderWeek() {
     });
     tbody.appendChild(cr);
   }
-
   tbl.appendChild(tbody);
 }
 
-// ---- 1日表示 ----
+// ===== 1日表示 =====
 function goDay(day) {
   state.curDay = day;
   const dc = day.dow === 0 ? 'color:#e24b4a' : day.dow === 6 ? 'color:#378ADD' : '';
@@ -617,17 +851,152 @@ function renderDay() {
   };
 }
 
-// ---- 起動 ----
-document.addEventListener('DOMContentLoaded', () => {
-  auth.signInAnonymously().then(() => {
+// ===== 通知設定画面 =====
+function goNotifSettings() {
+  updateAccountUI(state.user);
+  loadAndRenderNotifSettings();
+  show('scNotif');
+}
+
+function goAccountSettings() {
+  updateAccountUI(state.user);
+  show('scAccount');
+}
+
+async function loadAndRenderNotifSettings() {
+  if (state.fcmToken) {
+    try {
+      const doc = await db.collection('devices').doc(state.fcmToken).get();
+      if (doc.exists) {
+        const d = doc.data();
+        state.notifSettings = {
+          notifEnabled: !!d.notifEnabled,
+          notifTime:    d.notifTime || '21:00',
+          lineEnabled:  !!d.lineEnabled,
+          lineTarget:   d.lineTarget || 'home',
+          lineGroupId:  d.lineGroupId || '',
+        };
+      }
+    } catch(e) {}
+  }
+  applyNotifSettingsToUI();
+}
+
+function applyNotifSettingsToUI() {
+  const s = state.notifSettings;
+  const toggle = document.getElementById('notifToggle');
+  toggle.className = 'sm-toggle' + (s.notifEnabled ? ' on' : '');
+  document.getElementById('notifTime').value = s.notifTime;
+  document.getElementById('notifTimeRow').style.opacity = s.notifEnabled ? '1' : '0.4';
+
+  const lineToggle = document.getElementById('lineToggle');
+  lineToggle.className = 'sm-toggle' + (s.lineEnabled ? ' on' : '');
+  document.getElementById('lineTargetArea').style.display = s.lineEnabled ? 'block' : 'none';
+  setLineTarget(s.lineTarget, false);
+  document.getElementById('lineGroupId').value = s.lineGroupId;
+
+  document.getElementById('notifPreviewLine').style.display = s.lineEnabled ? 'inline-flex' : 'none';
+
+  const perm = Notification.permission;
+  document.getElementById('notifPermWarn').style.display =
+    (s.notifEnabled && perm === 'denied') ? 'block' : 'none';
+}
+
+function toggleNotif() {
+  state.notifSettings.notifEnabled = !state.notifSettings.notifEnabled;
+  applyNotifSettingsToUI();
+}
+
+function toggleLine() {
+  state.notifSettings.lineEnabled = !state.notifSettings.lineEnabled;
+  applyNotifSettingsToUI();
+}
+
+function setLineTarget(target, updateState = true) {
+  if (updateState) state.notifSettings.lineTarget = target;
+  const t = state.notifSettings.lineTarget;
+  document.getElementById('lineHomeBtn').className  = 'line-target-btn' + (t === 'home'  ? ' active' : '');
+  document.getElementById('lineGroupBtn').className = 'line-target-btn' + (t === 'group' ? ' active' : '');
+  document.getElementById('lineGroupIdWrap').style.display = t === 'group' ? 'block' : 'none';
+}
+
+async function saveNotifSettings() {
+  const s = state.notifSettings;
+  s.notifTime   = document.getElementById('notifTime').value;
+  s.lineGroupId = document.getElementById('lineGroupId').value.trim();
+
+  if (s.notifEnabled) {
+    if (!messaging) {
+      showToast('このブラウザは通知に非対応です');
+      return;
+    }
+    if (VAPID_KEY === 'REPLACE_WITH_YOUR_VAPID_KEY') {
+      showToast('VAPIDキーを設定してください（開発者向け）');
+      return;
+    }
+    try {
+      const perm = await Notification.requestPermission();
+      if (perm !== 'granted') {
+        showToast('通知が拒否されました');
+        applyNotifSettingsToUI();
+        return;
+      }
+      const swReg = await navigator.serviceWorker.ready;
+      const token = await messaging.getToken({ vapidKey: VAPID_KEY, serviceWorkerRegistration: swReg });
+      if (token) {
+        state.fcmToken = token;
+        localStorage.setItem('fcmToken', token);
+      }
+    } catch(e) {
+      showToast('通知の設定に失敗しました');
+      return;
+    }
+  }
+
+  if (!state.fcmToken && s.notifEnabled) {
+    showToast('通知トークンを取得できませんでした');
+    return;
+  }
+
+  try {
+    if (state.fcmToken) {
+      await db.collection('devices').doc(state.fcmToken).set({
+        uid:          state.user ? state.user.uid : '',
+        notifEnabled: s.notifEnabled,
+        notifTime:    s.notifTime,
+        lineEnabled:  s.lineEnabled,
+        lineTarget:   s.lineTarget,
+        lineGroupId:  s.lineGroupId,
+        updatedAt:    firebase.firestore.FieldValue.serverTimestamp(),
+      });
+    }
+    showToast('設定を保存しました', 'ok');
+  } catch(e) {
+    showToast('保存に失敗しました');
+  }
+}
+
+// ===== 起動 =====
+document.addEventListener('DOMContentLoaded', async () => {
+  // リダイレクトログイン結果を処理
+  try {
+    await auth.getRedirectResult();
+  } catch(e) {
+    console.warn('redirect result error:', e.message);
+  }
+
+  auth.onAuthStateChanged(user => {
     document.getElementById('loadingScreen').style.display = 'none';
     document.getElementById('app').style.display = 'flex';
-    startSync(state.curYear, state.curMonth);
-  }).catch(() => {
-    document.getElementById('loadingScreen').style.display = 'none';
-    document.getElementById('app').style.display = 'flex';
-    renderMonth();
-    showToast('オフラインモードで起動しました');
+    if (user) {
+      state.user = user;
+      updateAccountUI(user);
+      show('scMonth');
+      startSync(state.curYear, state.curMonth);
+    } else {
+      state.user = null;
+      show('scLogin');
+    }
   });
 });
 
