@@ -868,9 +868,10 @@ function goAccountSettings() {
 }
 
 async function loadAndRenderNotifSettings() {
-  if (state.fcmToken) {
+  let loaded = false;
+  if (state.user) {
     try {
-      const doc = await db.collection('devices').doc(state.fcmToken).get();
+      const doc = await db.collection('users').doc(state.user.uid).get();
       if (doc.exists) {
         const d = doc.data();
         state.notifSettings = {
@@ -880,7 +881,15 @@ async function loadAndRenderNotifSettings() {
           lineTarget:   d.lineTarget || 'home',
           lineGroupId:  d.lineGroupId || '',
         };
+        loaded = true;
       }
+    } catch(e) {}
+  }
+  // 端末データが無い（トークン変更直後など）ときはローカルのバックアップで補完
+  if (!loaded) {
+    try {
+      const s = JSON.parse(localStorage.getItem('notifSettings') || 'null');
+      if (s) state.notifSettings = { ...state.notifSettings, ...s };
     } catch(e) {}
   }
   applyNotifSettingsToUI();
@@ -962,22 +971,64 @@ async function saveNotifSettings() {
     return;
   }
 
+  if (!state.user) {
+    showToast('ログインしてから設定してください');
+    return;
+  }
+
+  // 設定復元用にローカルにもバックアップ
+  localStorage.setItem('notifSettings', JSON.stringify(s));
+
   try {
+    // 設定は「アカウント」に保存（端末ではなくアカウント単位）
+    await db.collection('users').doc(state.user.uid).set({
+      notifEnabled: s.notifEnabled,
+      notifTime:    s.notifTime,
+      lineEnabled:  s.lineEnabled,
+      lineTarget:   s.lineTarget,
+      lineGroupId:  s.lineGroupId,
+      updatedAt:    firebase.firestore.FieldValue.serverTimestamp(),
+    }, { merge: true });
+
+    // この端末のトークンをアカウントに登録（送信先の紐付け）
     if (state.fcmToken) {
       await db.collection('devices').doc(state.fcmToken).set({
-        uid:          state.user ? state.user.uid : '',
-        notifEnabled: s.notifEnabled,
-        notifTime:    s.notifTime,
-        lineEnabled:  s.lineEnabled,
-        lineTarget:   s.lineTarget,
-        lineGroupId:  s.lineGroupId,
-        updatedAt:    firebase.firestore.FieldValue.serverTimestamp(),
-      });
+        uid:       state.user.uid,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      }, { merge: true });
     }
     showToast('設定を保存しました', 'ok');
   } catch(e) {
     showToast('保存に失敗しました');
   }
+}
+
+// 起動のたびに FCM トークンを取り直し、ログイン中のアカウントに紐付け直す。
+// （iOS はトークンが定期的に変わり、放置すると通知が届かなくなるため）
+async function ensureFreshToken() {
+  if (!messaging) return;
+  if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
+  if (!state.user) return;
+  try {
+    const swReg = await navigator.serviceWorker.ready;
+    const newToken = await messaging.getToken({ vapidKey: VAPID_KEY, serviceWorkerRegistration: swReg });
+    if (!newToken) return;
+
+    const oldToken = state.fcmToken;
+    // トークンが変わっていたら古い端末データを削除
+    if (oldToken && oldToken !== newToken) {
+      try { await db.collection('devices').doc(oldToken).delete(); } catch(e) {}
+    }
+
+    state.fcmToken = newToken;
+    localStorage.setItem('fcmToken', newToken);
+
+    // この端末のトークンを、今ログインしているアカウントに登録（送信先の紐付け）
+    await db.collection('devices').doc(newToken).set({
+      uid:       state.user.uid,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    }, { merge: true });
+  } catch(e) {}
 }
 
 // ===== 起動 =====
@@ -997,6 +1048,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       updateAccountUI(user);
       show('scMonth');
       startSync(state.curYear, state.curMonth);
+      ensureFreshToken();   // トークンを最新化して通知が届き続けるようにする
     } else {
       state.user = null;
       show('scLogin');
