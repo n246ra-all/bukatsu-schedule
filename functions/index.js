@@ -44,78 +44,65 @@ exports.sendDailyNotifications = functions
     // 通知の対象日（重複防止のキー）
     const targetDate = tYear + '-' + String(tMonth).padStart(2, '0') + '-' + String(tDay).padStart(2, '0');
 
-    // 通知ONのアカウントを取得して、アカウント単位で送信
-    const usersSnap = await admin.firestore().collection('users').get();
+    // 通知ONの端末を取得して、端末ごとに送信（各自が自分の端末に設定）
+    const devicesSnap = await admin.firestore().collection('devices').get();
     const sends = [];
 
-    for (const userDoc of usersSnap.docs) {
-      const u   = userDoc.data();
-      const uid = userDoc.id;
-      if (!u.notifEnabled) continue;
+    devicesSnap.forEach(doc => {
+      const device = doc.data();
+      if (!device.notifEnabled) return;
 
-      // アカウントの通知時間と現在時刻を照合
+      // 端末の通知時間と現在時刻を照合
       // 「通知時刻 〜 通知時刻+60分」に入った実行だけで送る（早すぎる送信を防ぐ）
-      const [h, m] = (u.notifTime || '21:00').split(':').map(Number);
-      const userMin = h * 60 + m;
-      let delta = currentMin - userMin;
+      const [h, m] = (device.notifTime || '21:00').split(':').map(Number);
+      const deviceMin = h * 60 + m;
+      let delta = currentMin - deviceMin;
       if (delta < 0) delta += 24 * 60;   // 日付またぎ対応
-      if (delta > 60) continue;          // まだ通知時刻前 / 今サイクルの対象外
+      if (delta > 60) return;            // まだ通知時刻前 / 今サイクルの対象外
 
       // この対象日に既に送信済みならスキップ（重複送信を防ぐ）
-      if (u.lastNotified === targetDate) continue;
+      if (device.lastNotified === targetDate) return;
 
-      // このアカウントに紐づく全端末トークンを取得
-      const tokensSnap = await admin.firestore()
-        .collection('devices').where('uid', '==', uid).get();
-      if (tokensSnap.empty) continue;
-
-      const lineEnabled = !!(u.lineEnabled);
-      const lineTarget  = u.lineTarget  || 'home';
-      const lineGroupId = u.lineGroupId || '';
+      // 通知タップ時に開く先（LINE ON ならLINEアプリ、OFFならアプリ本体）
+      const lineEnabled = !!(device.lineEnabled);
       const link = lineEnabled
-        ? (lineTarget === 'group' && lineGroupId
-            ? 'line://ti/g/' + lineGroupId
-            : 'line://')
+        ? 'line://'
         : 'https://n246ra-all.github.io/bukatsu-schedule/';
 
-      // アカウントの各端末へ送信
-      const tokenSends = tokensSnap.docs.map(tokenDoc => {
-        const message = {
-          token: tokenDoc.id,
-          notification: { title: notifTitle, body: notifBody },
-          data: {
-            lineEnabled:  String(lineEnabled),
-            lineTarget:   lineTarget,
-            lineGroupId:  lineGroupId,
+      const message = {
+        token: doc.id,
+        notification: { title: notifTitle, body: notifBody },
+        data: {
+          lineEnabled: String(lineEnabled),
+        },
+        webpush: {
+          notification: {
+            icon:  'https://n246ra-all.github.io/bukatsu-schedule/icon-192.png',
+            badge: 'https://n246ra-all.github.io/bukatsu-schedule/icon-192.png',
           },
-          webpush: {
-            notification: {
-              icon:  'https://n246ra-all.github.io/bukatsu-schedule/icon-192.png',
-              badge: 'https://n246ra-all.github.io/bukatsu-schedule/icon-192.png',
-            },
-            fcmOptions: { link },
-          },
-        };
-        return admin.messaging().send(message).catch(err => {
-          console.error('Send failed:', tokenDoc.id, err.code);
-          // 無効なトークンは削除
-          if (err.code === 'messaging/invalid-registration-token' ||
-              err.code === 'messaging/registration-token-not-registered') {
-            return admin.firestore().collection('devices').doc(tokenDoc.id).delete();
-          }
-        });
-      });
+          fcmOptions: { link },
+        },
+      };
 
-      // 送信後、このアカウントを「この対象日は送信済み」と記録（重複防止）
       sends.push(
-        Promise.all(tokenSends).then(() =>
-          admin.firestore().collection('users').doc(uid)
-            .update({ lastNotified: targetDate })
-        )
+        admin.messaging().send(message)
+          // 送信成功したら「この対象日は送信済み」と記録（重複防止）
+          .then(() =>
+            admin.firestore().collection('devices').doc(doc.id)
+              .update({ lastNotified: targetDate })
+          )
+          .catch(err => {
+            console.error('Send failed:', doc.id, err.code);
+            // 無効なトークンは削除
+            if (err.code === 'messaging/invalid-registration-token' ||
+                err.code === 'messaging/registration-token-not-registered') {
+              return admin.firestore().collection('devices').doc(doc.id).delete();
+            }
+          })
       );
-    }
+    });
 
     await Promise.all(sends);
-    console.log('Sent notifications to ' + sends.length + ' accounts for ' + tMonth + '/' + tDay);
+    console.log('Sent ' + sends.length + ' notifications for ' + tMonth + '/' + tDay);
     return null;
   });

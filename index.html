@@ -355,17 +355,6 @@ input[type=radio]{width:22px;height:22px;cursor:pointer;accent-color:#378ADD;dis
             <div class="sm-toggle-thumb"></div>
           </button>
         </div>
-        <div id="lineTargetArea" style="display:none">
-          <div class="line-target-wrap">
-            <button class="line-target-btn active" id="lineHomeBtn" onclick="setLineTarget('home')">LINEホーム</button>
-            <button class="line-target-btn" id="lineGroupBtn" onclick="setLineTarget('group')">グループ指定</button>
-          </div>
-          <div class="group-id-wrap" id="lineGroupIdWrap" style="display:none">
-            <div style="font-size:12px;color:#8e8e93;margin-bottom:6px">LINEグループIDを入力</div>
-            <input class="group-id-input" type="text" id="lineGroupId" placeholder="例: Cabcd1234…">
-            <div style="font-size:11px;color:#8e8e93;margin-top:4px">グループIDはLINE Developersまたはチャットボットで確認できます</div>
-          </div>
-        </div>
       </div>
 
       <div class="settings-section-hd">通知プレビュー</div>
@@ -449,7 +438,7 @@ const state = {
   syncVersion: 0,
   user: null,
   fcmToken: localStorage.getItem('fcmToken') || null,
-  notifSettings: { notifEnabled: false, notifTime: '21:00', lineEnabled: false, lineTarget: 'home', lineGroupId: '' },
+  notifSettings: { notifEnabled: false, notifTime: '21:00', lineEnabled: false },
 };
 const today = new Date();
 
@@ -869,17 +858,15 @@ function goAccountSettings() {
 
 async function loadAndRenderNotifSettings() {
   let loaded = false;
-  if (state.user) {
+  if (state.fcmToken) {
     try {
-      const doc = await db.collection('users').doc(state.user.uid).get();
+      const doc = await db.collection('devices').doc(state.fcmToken).get();
       if (doc.exists) {
         const d = doc.data();
         state.notifSettings = {
           notifEnabled: !!d.notifEnabled,
           notifTime:    d.notifTime || '21:00',
           lineEnabled:  !!d.lineEnabled,
-          lineTarget:   d.lineTarget || 'home',
-          lineGroupId:  d.lineGroupId || '',
         };
         loaded = true;
       }
@@ -904,9 +891,6 @@ function applyNotifSettingsToUI() {
 
   const lineToggle = document.getElementById('lineToggle');
   lineToggle.className = 'sm-toggle' + (s.lineEnabled ? ' on' : '');
-  document.getElementById('lineTargetArea').style.display = s.lineEnabled ? 'block' : 'none';
-  setLineTarget(s.lineTarget, false);
-  document.getElementById('lineGroupId').value = s.lineGroupId;
 
   document.getElementById('notifPreviewLine').style.display = s.lineEnabled ? 'inline-flex' : 'none';
 
@@ -925,18 +909,9 @@ function toggleLine() {
   applyNotifSettingsToUI();
 }
 
-function setLineTarget(target, updateState = true) {
-  if (updateState) state.notifSettings.lineTarget = target;
-  const t = state.notifSettings.lineTarget;
-  document.getElementById('lineHomeBtn').className  = 'line-target-btn' + (t === 'home'  ? ' active' : '');
-  document.getElementById('lineGroupBtn').className = 'line-target-btn' + (t === 'group' ? ' active' : '');
-  document.getElementById('lineGroupIdWrap').style.display = t === 'group' ? 'block' : 'none';
-}
-
 async function saveNotifSettings() {
   const s = state.notifSettings;
-  s.notifTime   = document.getElementById('notifTime').value;
-  s.lineGroupId = document.getElementById('lineGroupId').value.trim();
+  s.notifTime = document.getElementById('notifTime').value;
 
   if (s.notifEnabled) {
     if (!messaging) {
@@ -971,30 +946,17 @@ async function saveNotifSettings() {
     return;
   }
 
-  if (!state.user) {
-    showToast('ログインしてから設定してください');
-    return;
-  }
-
   // 設定復元用にローカルにもバックアップ
   localStorage.setItem('notifSettings', JSON.stringify(s));
 
   try {
-    // 設定は「アカウント」に保存（端末ではなくアカウント単位）
-    await db.collection('users').doc(state.user.uid).set({
-      notifEnabled: s.notifEnabled,
-      notifTime:    s.notifTime,
-      lineEnabled:  s.lineEnabled,
-      lineTarget:   s.lineTarget,
-      lineGroupId:  s.lineGroupId,
-      updatedAt:    firebase.firestore.FieldValue.serverTimestamp(),
-    }, { merge: true });
-
-    // この端末のトークンをアカウントに登録（送信先の紐付け）
+    // 設定は「この端末」に保存（端末ごとに各自が設定できる）
     if (state.fcmToken) {
       await db.collection('devices').doc(state.fcmToken).set({
-        uid:       state.user.uid,
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        notifEnabled: s.notifEnabled,
+        notifTime:    s.notifTime,
+        lineEnabled:  s.lineEnabled,
+        updatedAt:    firebase.firestore.FieldValue.serverTimestamp(),
       }, { merge: true });
     }
     showToast('設定を保存しました', 'ok');
@@ -1003,31 +965,49 @@ async function saveNotifSettings() {
   }
 }
 
-// 起動のたびに FCM トークンを取り直し、ログイン中のアカウントに紐付け直す。
+// 起動のたびに FCM トークンを取り直し、変わっていれば設定を新トークンへ引き継ぐ。
 // （iOS はトークンが定期的に変わり、放置すると通知が届かなくなるため）
 async function ensureFreshToken() {
   if (!messaging) return;
   if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
-  if (!state.user) return;
   try {
     const swReg = await navigator.serviceWorker.ready;
     const newToken = await messaging.getToken({ vapidKey: VAPID_KEY, serviceWorkerRegistration: swReg });
     if (!newToken) return;
 
     const oldToken = state.fcmToken;
-    // トークンが変わっていたら古い端末データを削除
-    if (oldToken && oldToken !== newToken) {
-      try { await db.collection('devices').doc(oldToken).delete(); } catch(e) {}
+    if (newToken === oldToken) return;   // 変わっていなければ何もしない
+
+    // 旧トークンの設定を引き継ぐ（無ければローカルのバックアップを使う）
+    let s = null;
+    if (oldToken) {
+      try {
+        const oldDoc = await db.collection('devices').doc(oldToken).get();
+        if (oldDoc.exists) s = oldDoc.data();
+        await db.collection('devices').doc(oldToken).delete();
+      } catch(e) {}
+    }
+    if (!s) {
+      try { s = JSON.parse(localStorage.getItem('notifSettings') || 'null'); } catch(e) {}
     }
 
     state.fcmToken = newToken;
     localStorage.setItem('fcmToken', newToken);
 
-    // この端末のトークンを、今ログインしているアカウントに登録（送信先の紐付け）
-    await db.collection('devices').doc(newToken).set({
-      uid:       state.user.uid,
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-    }, { merge: true });
+    // 通知ONだった端末だけ、新トークンで再登録
+    if (s && s.notifEnabled) {
+      const ns = {
+        notifEnabled: true,
+        notifTime:    s.notifTime  || '21:00',
+        lineEnabled:  !!s.lineEnabled,
+      };
+      await db.collection('devices').doc(newToken).set({
+        ...ns,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      }, { merge: true });
+      state.notifSettings = ns;
+      localStorage.setItem('notifSettings', JSON.stringify(ns));
+    }
   } catch(e) {}
 }
 

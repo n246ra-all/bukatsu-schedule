@@ -29,12 +29,10 @@ messaging.onBackgroundMessage(payload => {
 self.addEventListener('notificationclick', e => {
   e.notification.close();
   const data = e.notification.data || {};
-  let url = 'https://n246ra-all.github.io/bukatsu-schedule/';
-  if (data.lineEnabled === 'true') {
-    url = (data.lineTarget === 'group' && data.lineGroupId)
-      ? 'line://ti/g/' + data.lineGroupId
-      : 'line://';
-  }
+  // LINE ON ならLINEアプリ、OFFならアプリ本体を開く
+  const url = (data.lineEnabled === 'true')
+    ? 'line://'
+    : 'https://n246ra-all.github.io/bukatsu-schedule/';
   e.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
       for (const c of list) {
@@ -46,7 +44,7 @@ self.addEventListener('notificationclick', e => {
 });
 
 // ===== キャッシュ（PWA） =====
-const CACHE = 'bukatsu-v6';
+const CACHE = 'bukatsu-v7';
 const APP_ASSETS = ['./index.html', './manifest.json'];
 
 self.addEventListener('install', e => {
