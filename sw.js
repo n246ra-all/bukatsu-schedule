@@ -44,7 +44,7 @@ self.addEventListener('notificationclick', e => {
 });
 
 // ===== キャッシュ（PWA） =====
-const CACHE = 'bukatsu-v7';
+const CACHE = 'bukatsu-v8';
 const APP_ASSETS = ['./index.html', './manifest.json'];
 
 self.addEventListener('install', e => {
