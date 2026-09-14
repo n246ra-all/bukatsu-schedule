@@ -270,6 +270,18 @@ input[type=radio]{width:22px;height:22px;cursor:pointer;accent-color:#378ADD;dis
         🔒 閲覧モードです。編集するにはトグルで切り替えてください。
       </div>
       <div>
+        <div class="section-title">部活</div>
+        <div class="section-card">
+          <label class="row-item" id="dHolidayRow">
+            <input type="checkbox" id="dHoliday" style="width:22px;height:22px;accent-color:#8e8e93;flex-shrink:0">
+            <div>
+              <div class="row-label">休み</div>
+              <div class="row-sub">部活なし（朝練・夕練を選択不可にする）</div>
+            </div>
+          </label>
+        </div>
+      </div>
+      <div id="dPracticeSection">
         <div class="section-title">朝練</div>
         <div class="section-card">
           <label class="row-item" id="dMorningRow">
@@ -281,7 +293,7 @@ input[type=radio]{width:22px;height:22px;cursor:pointer;accent-color:#378ADD;dis
           </label>
         </div>
       </div>
-      <div>
+      <div id="dEveningSection">
         <div class="section-title">夕練 — 終了時間</div>
         <div class="section-card">
           <div id="dEveningList"></div>
@@ -434,7 +446,7 @@ const db        = firebase.firestore();
 let   messaging = null;
 try { messaging = firebase.messaging(); } catch(e) {}
 
-const TIMES_E   = ['19:30','20:00','20:30','21:00','21:30','22:00'];
+const TIMES_E   = ['16:00','16:30','17:00','17:30','18:00','18:30','19:00','19:30','20:00','20:30','21:00','21:30','22:00'];
 const DOW       = ['日','月','火','水','木','金','土'];
 const MAX_CACHE = 6;
 
@@ -544,7 +556,7 @@ function startSync(y, m) {
 
 function getDayData(y, m, d) {
   const cache = state.localCache[docId(y, m)] || {};
-  return cache[String(d)] || { morning: false, evening: null };
+  return cache[String(d)] || { holiday: false, morning: false, evening: null };
 }
 
 async function saveDayData(y, m, d, newData) {
@@ -584,6 +596,7 @@ function setSyncStatus(s) {
 
 function badgeCount(y, m, d) {
   const r = getDayData(y, m, d);
+  if (r.holiday) return -1; // -1 = 休み
   return (r.morning ? 1 : 0) + (r.evening ? 1 : 0);
 }
 
@@ -637,7 +650,9 @@ function renderMonth() {
     el.className  = 'cal-day' + (isToday ? ' today' : '') + (dow === 0 ? ' sun-d' : dow === 6 ? ' sat-d' : '');
     const num = document.createElement('div'); num.className = 'day-num'; num.textContent = d; el.appendChild(num);
     const cnt = badgeCount(state.curYear, state.curMonth, d);
-    if (cnt > 0) {
+    if (cnt === -1) {
+      const b = document.createElement('div'); b.className = 'day-badge'; b.style.background='#8e8e93'; b.style.fontSize='7px'; b.textContent = '休'; el.appendChild(b);
+    } else if (cnt > 0) {
       const b = document.createElement('div'); b.className = 'day-badge'; b.textContent = cnt; el.appendChild(b);
     } else {
       const r = getDayData(state.curYear, state.curMonth, d);
@@ -674,7 +689,10 @@ function renderTodayPanel() {
       '<div class="today-panel-dow" style="color:' + dowColor + '">' + label + '（' + DOW[dow] + '）</div>';
     const body = document.createElement('div'); body.className = 'today-panel-body';
 
-    if (!r.morning && !r.evening) {
+    if (r.holiday) {
+      const empty = document.createElement('div'); empty.className = 'today-panel-empty'; empty.textContent = '部活なし（休み）';
+      body.appendChild(empty);
+    } else if (!r.morning && !r.evening) {
       const empty = document.createElement('div'); empty.className = 'today-panel-empty'; empty.textContent = '予定なし';
       body.appendChild(empty);
     } else {
@@ -753,22 +771,48 @@ function renderWeek() {
     tbody.appendChild(tr);
   };
 
+  // 休み行
+  addDiv('部活');
+  const hrow = document.createElement('tr');
+  const ht0  = document.createElement('td'); ht0.className = 'tcol'; ht0.textContent = '休み'; hrow.appendChild(ht0);
+  days.forEach((day) => {
+    const r = getDayData(day.y, day.m, day.d);
+    if (state.isEdit) {
+      const td = document.createElement('td'); td.className = 'wcell' + (r.holiday ? ' mon-on' : ''); td.style.background = r.holiday ? '#f0f0f5' : '';
+      const cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = !!r.holiday;
+      cb.style.accentColor = '#8e8e93';
+      cb.addEventListener('change', () => {
+        const cur = getDayData(day.y, day.m, day.d);
+        saveDayData(day.y, day.m, day.d, { holiday: cb.checked, morning: cb.checked ? false : cur.morning, evening: cb.checked ? null : cur.evening });
+      });
+      td.appendChild(cb); hrow.appendChild(td);
+    } else {
+      const td = document.createElement('td'); td.className = 'vcell';
+      td.innerHTML = '<div class="vcell-inner">' + (r.holiday ? '<div style="font-size:11px;color:#8e8e93;font-weight:600">休</div>' : '') + '</div>';
+      hrow.appendChild(td);
+    }
+  });
+  tbody.appendChild(hrow);
+
   addDiv('朝練');
   const mrow = document.createElement('tr');
   const mt0  = document.createElement('td'); mt0.className = 'tcol'; mt0.textContent = '8:00'; mrow.appendChild(mt0);
   days.forEach((day) => {
     const r = getDayData(day.y, day.m, day.d);
+    const disabled = !!r.holiday;
     if (state.isEdit) {
-      const td = document.createElement('td'); td.className = 'wcell' + (r.morning ? ' mon-on' : '');
-      const cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = r.morning;
+      const td = document.createElement('td'); td.className = 'wcell' + (r.morning && !disabled ? ' mon-on' : '');
+      if (disabled) td.style.background = '#f5f5f7';
+      const cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = r.morning && !disabled; cb.disabled = disabled;
       cb.addEventListener('change', () => {
         const cur = getDayData(day.y, day.m, day.d);
-        saveDayData(day.y, day.m, day.d, { morning: cb.checked, evening: cur.evening });
+        saveDayData(day.y, day.m, day.d, { holiday: cur.holiday, morning: cb.checked, evening: cur.evening });
       });
       td.appendChild(cb); mrow.appendChild(td);
     } else {
-      const td = document.createElement('td'); td.className = 'vcell' + (r.morning ? ' mon-on' : '');
-      td.innerHTML = '<div class="vcell-inner">' + (r.morning ? '<div class="cell-dot" style="color:#BA7517">●</div>' : '<div class="cell-val">—</div>') + '</div>';
+      const td = document.createElement('td'); td.className = 'vcell' + (r.morning && !disabled ? ' mon-on' : '');
+      if (disabled) td.style.background = '#f5f5f7';
+      td.innerHTML = '<div class="vcell-inner">' + (r.morning && !disabled ? '<div class="cell-dot" style="color:#BA7517">●</div>' : '<div class="cell-val">—</div>') + '</div>';
       mrow.appendChild(td);
     }
   });
@@ -780,17 +824,20 @@ function renderWeek() {
     const td0 = document.createElement('td'); td0.className = 'tcol'; td0.textContent = t; tr.appendChild(td0);
     days.forEach((day, ci) => {
       const r = getDayData(day.y, day.m, day.d);
+      const disabled = !!r.holiday;
       if (state.isEdit) {
-        const td = document.createElement('td'); td.className = 'wcell' + (r.evening === t ? ' eve-on' : '');
-        const rb = document.createElement('input'); rb.type = 'radio'; rb.name = 'ev' + ci; rb.value = t; rb.checked = r.evening === t;
+        const td = document.createElement('td'); td.className = 'wcell' + (r.evening === t && !disabled ? ' eve-on' : '');
+        if (disabled) td.style.background = '#f5f5f7';
+        const rb = document.createElement('input'); rb.type = 'radio'; rb.name = 'ev' + ci; rb.value = t; rb.checked = r.evening === t && !disabled; rb.disabled = disabled;
         rb.addEventListener('change', () => {
           const cur = getDayData(day.y, day.m, day.d);
-          saveDayData(day.y, day.m, day.d, { morning: cur.morning, evening: t });
+          saveDayData(day.y, day.m, day.d, { holiday: cur.holiday, morning: cur.morning, evening: t });
         });
         td.appendChild(rb); tr.appendChild(td);
       } else {
-        const td = document.createElement('td'); td.className = 'vcell' + (r.evening === t ? ' eve-on' : '');
-        td.innerHTML = '<div class="vcell-inner">' + (r.evening === t ? '<div class="cell-dot" style="color:#378ADD">●</div>' : '') + '</div>';
+        const td = document.createElement('td'); td.className = 'vcell' + (r.evening === t && !disabled ? ' eve-on' : '');
+        if (disabled) td.style.background = '#f5f5f7';
+        td.innerHTML = '<div class="vcell-inner">' + (r.evening === t && !disabled ? '<div class="cell-dot" style="color:#378ADD">●</div>' : '') + '</div>';
         tr.appendChild(td);
       }
     });
@@ -805,7 +852,7 @@ function renderWeek() {
       const btn = document.createElement('button'); btn.className = 'clear-cell-btn'; btn.textContent = '解除';
       btn.addEventListener('click', () => {
         const cur = getDayData(day.y, day.m, day.d);
-        saveDayData(day.y, day.m, day.d, { morning: cur.morning, evening: null });
+        saveDayData(day.y, day.m, day.d, { holiday: cur.holiday, morning: cur.morning, evening: null });
       });
       td.appendChild(btn); cr.appendChild(td);
     });
@@ -826,32 +873,54 @@ function renderDay() {
   if (!state.curDay) return;
   const { y, m, d } = state.curDay;
   const r = getDayData(y, m, d);
+  const isHoliday = !!r.holiday;
+
+  // 休みチェックボックス
+  const hCb = document.getElementById('dHoliday');
+  hCb.checked = isHoliday; hCb.disabled = !state.isEdit;
+  document.getElementById('dHolidayRow').className = 'row-item' + (isHoliday ? ' vo' : '') + (state.isEdit ? '' : ' vo');
+  hCb.onchange = () => {
+    const cur = getDayData(y, m, d);
+    saveDayData(y, m, d, { holiday: hCb.checked, morning: hCb.checked ? false : cur.morning, evening: hCb.checked ? null : cur.evening });
+  };
+
+  // 朝練・夕練セクションのグレーアウト
+  const practiceSection = document.getElementById('dPracticeSection');
+  const eveningSection  = document.getElementById('dEveningSection');
+  practiceSection.style.opacity = isHoliday ? '0.35' : '1';
+  eveningSection.style.opacity  = isHoliday ? '0.35' : '1';
+  practiceSection.style.pointerEvents = isHoliday ? 'none' : '';
+  eveningSection.style.pointerEvents  = isHoliday ? 'none' : '';
+
+  // 朝練
   const cb = document.getElementById('dMorning');
-  cb.checked = r.morning; cb.disabled = !state.isEdit;
-  document.getElementById('dMorningRow').className = 'row-item' + (r.morning ? ' on-m' : '') + (state.isEdit ? '' : ' vo');
+  cb.checked = r.morning && !isHoliday; cb.disabled = !state.isEdit || isHoliday;
+  document.getElementById('dMorningRow').className = 'row-item' + (r.morning && !isHoliday ? ' on-m' : '') + (state.isEdit && !isHoliday ? '' : ' vo');
   cb.onchange = () => {
     const cur = getDayData(y, m, d);
-    saveDayData(y, m, d, { morning: cb.checked, evening: cur.evening });
+    saveDayData(y, m, d, { holiday: cur.holiday, morning: cb.checked, evening: cur.evening });
   };
+
+  // 夕練
   const el = document.getElementById('dEveningList'); el.innerHTML = '';
   TIMES_E.forEach(t => {
     const label = document.createElement('label');
-    const on = r.evening === t;
-    label.className = 'row-item' + (on ? ' on-e' : '') + (state.isEdit ? '' : ' vo');
-    const rb = document.createElement('input'); rb.type = 'radio'; rb.name = 'evD'; rb.value = t; rb.checked = on; rb.disabled = !state.isEdit;
+    const on = r.evening === t && !isHoliday;
+    label.className = 'row-item' + (on ? ' on-e' : '') + (state.isEdit && !isHoliday ? '' : ' vo');
+    const rb = document.createElement('input'); rb.type = 'radio'; rb.name = 'evD'; rb.value = t; rb.checked = on; rb.disabled = !state.isEdit || isHoliday;
     rb.style.cssText = 'width:22px;height:22px;accent-color:#378ADD;flex-shrink:0';
     rb.addEventListener('change', () => {
       const cur = getDayData(y, m, d);
-      saveDayData(y, m, d, { morning: cur.morning, evening: t });
+      saveDayData(y, m, d, { holiday: cur.holiday, morning: cur.morning, evening: t });
     });
     const span = document.createElement('div'); span.className = 'row-label'; span.textContent = t + ' 終了';
     label.appendChild(rb); label.appendChild(span); el.appendChild(label);
   });
   const clearBtn = document.getElementById('clearEveBtn');
-  clearBtn.style.display = state.isEdit ? 'block' : 'none';
+  clearBtn.style.display = state.isEdit && !isHoliday ? 'block' : 'none';
   clearBtn.onclick = () => {
     const cur = getDayData(y, m, d);
-    saveDayData(y, m, d, { morning: cur.morning, evening: null });
+    saveDayData(y, m, d, { holiday: cur.holiday, morning: cur.morning, evening: null });
   };
 }
 
