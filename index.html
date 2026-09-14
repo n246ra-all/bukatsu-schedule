@@ -633,6 +633,37 @@ function updateModeLbls() {
 }
 
 // ===== 月カレンダー =====
+// ===== 日本の祝日計算 =====
+function getJPHolidays(year) {
+  const h = new Set();
+  const key = (m, d) => m + '-' + d;
+  // 固定祝日
+  [[1,1],[2,11],[2,23],[4,29],[5,3],[5,4],[5,5],[8,11],[11,3],[11,23]].forEach(([m,d]) => h.add(key(m,d)));
+  // 春分の日・秋分の日
+  const shunbun = Math.floor(20.8431 + 0.242194*(year-1980) - Math.floor((year-1980)/4));
+  const shubun  = Math.floor(23.2488 + 0.242194*(year-1980) - Math.floor((year-1980)/4));
+  h.add(key(3, shunbun)); h.add(key(9, shubun));
+  // ハッピーマンデー（第N月曜日）
+  [[1,2],[7,3],[9,3],[10,2]].forEach(([m,n]) => {
+    let cnt = 0;
+    for (let d = 1; d <= 31; d++) {
+      if (new Date(year, m-1, d).getDay() === 1 && ++cnt === n) { h.add(key(m,d)); break; }
+    }
+  });
+  // 振替休日（祝日が日曜なら翌月曜）
+  const snap = [...h];
+  snap.forEach(k => {
+    const [m,d] = k.split('-').map(Number);
+    if (new Date(year,m-1,d).getDay() === 0) {
+      let nm=m, nd=d+1;
+      if (nd > new Date(year,nm,0).getDate()) { nd=1; nm++; }
+      while (h.has(key(nm,nd))) { nd++; if (nd > new Date(year,nm,0).getDate()) { nd=1; nm++; } }
+      h.add(key(nm,nd));
+    }
+  });
+  return h;
+}
+
 function renderMonth() {
   document.getElementById('monthTitle').textContent = state.curYear + '年' + state.curMonth + '月';
   const grid = document.getElementById('calDays');
@@ -643,14 +674,15 @@ function renderMonth() {
   for (let i = 0; i < firstDow; i++) {
     const el = document.createElement('div'); el.className = 'cal-day'; grid.appendChild(el);
   }
+  const jpHolidays = getJPHolidays(state.curYear);
   for (let d = 1; d <= daysInMonth; d++) {
-    const dow     = new Date(state.curYear, state.curMonth - 1, d).getDay();
-    const isToday = state.curYear === today.getFullYear() && state.curMonth === today.getMonth() + 1 && d === today.getDate();
-    const el      = document.createElement('div');
-    el.className  = 'cal-day' + (isToday ? ' today' : '') + (dow === 0 ? ' sun-d' : dow === 6 ? ' sat-d' : '');
+    const dow       = new Date(state.curYear, state.curMonth - 1, d).getDay();
+    const isToday   = state.curYear === today.getFullYear() && state.curMonth === today.getMonth() + 1 && d === today.getDate();
+    const isHoliday = jpHolidays.has(state.curMonth + '-' + d);
+    const el        = document.createElement('div');
+    el.className    = 'cal-day' + (isToday ? ' today' : '') + (dow === 0 || isHoliday ? ' sun-d' : dow === 6 ? ' sat-d' : '');
     const cnt = badgeCount(state.curYear, state.curMonth, d);
     const num = document.createElement('div'); num.className = 'day-num'; num.textContent = d;
-    if (cnt === -1) num.style.color = '#e24b4a';
     el.appendChild(num);
     if (cnt === -1) {
       const b = document.createElement('div'); b.className = 'day-badge'; b.style.background='#8e8e93'; b.style.fontSize='7px'; b.textContent = '休'; el.appendChild(b);
