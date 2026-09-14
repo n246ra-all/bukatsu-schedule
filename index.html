@@ -1050,14 +1050,8 @@ async function saveNotifSettings() {
 }
 
 // ===== 起動 =====
-document.addEventListener('DOMContentLoaded', async () => {
-  // リダイレクトログイン結果を処理
-  try {
-    await auth.getRedirectResult();
-  } catch(e) {
-    console.warn('redirect result error:', e.message);
-  }
-
+document.addEventListener('DOMContentLoaded', () => {
+  // 認証リスナーを先に登録（getRedirectResult の完了を待たない）
   auth.onAuthStateChanged(user => {
     document.getElementById('loadingScreen').style.display = 'none';
     document.getElementById('app').style.display = 'flex';
@@ -1071,6 +1065,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       show('scLogin');
     }
   });
+
+  // リダイレクト結果は非同期で処理（起動をブロックしない）
+  auth.getRedirectResult().catch(e => console.warn('redirect result:', e.message));
 });
 
 if ('serviceWorker' in navigator) {
