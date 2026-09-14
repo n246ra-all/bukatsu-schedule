@@ -46,8 +46,9 @@ self.addEventListener('notificationclick', e => {
 });
 
 // ===== キャッシュ（PWA） =====
-const CACHE = 'bukatsu-v5';
-const APP_ASSETS = ['./index.html', './manifest.json'];
+const CACHE = 'bukatsu-v6';
+// index.html はキャッシュしない（常に最新版をネットワークから取得）
+const APP_ASSETS = ['./manifest.json', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(APP_ASSETS)));
@@ -65,12 +66,16 @@ self.addEventListener('activate', e => {
 
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
+  // Firebase・Google系・index.html は常にネットワークから取得
   if (url.hostname.includes('firebase') ||
       url.hostname.includes('gstatic') ||
-      url.hostname.includes('googleapis')) {
-    e.respondWith(fetch(e.request).catch(() => new Response('', { status: 503 })));
+      url.hostname.includes('googleapis') ||
+      url.pathname.endsWith('/') ||
+      url.pathname.endsWith('index.html')) {
+    e.respondWith(fetch(e.request).catch(() => new Response('offline', { status: 503 })));
     return;
   }
+  // その他はキャッシュ優先
   e.respondWith(
     caches.match(e.request).then(cached => {
       if (cached) return cached;
@@ -78,6 +83,6 @@ self.addEventListener('fetch', e => {
         if (res.ok) caches.open(CACHE).then(c => c.put(e.request, res.clone()));
         return res;
       });
-    }).catch(() => caches.match('./index.html'))
+    })
   );
 });
