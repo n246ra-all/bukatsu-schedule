@@ -53,17 +53,17 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
 .cal-dow.sun{color:#e24b4a}
 .cal-dow.sat{color:#378ADD}
 .cal-days{display:grid;grid-template-columns:repeat(7,1fr);margin:0 8px 8px;border-left:0.5px solid #d0d0d5;border-top:0.5px solid #d0d0d5}
-.cal-day{position:relative;min-height:58px;display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;padding:4px 3px 3px;border-right:0.5px solid #d0d0d5;border-bottom:0.5px solid #d0d0d5;cursor:pointer;color:#1c1c1e;-webkit-user-select:none;user-select:none;box-sizing:border-box}
+.cal-day{position:relative;min-height:62px;border-right:0.5px solid #d0d0d5;border-bottom:0.5px solid #d0d0d5;cursor:pointer;color:#1c1c1e;-webkit-user-select:none;user-select:none}
 .cal-day:active{background:#f2f2f7}
 .cal-day.today{background:#EBF4FF}
-.cal-day.today .day-num{background:#378ADD;color:#fff}
+.cal-day.today .day-num{background:#378ADD;color:#fff!important}
 .cal-day.sun-d{color:#e24b4a}
 .cal-day.sat-d{color:#378ADD}
-.cal-day.today .day-num{color:#fff!important}
-.day-num{font-size:12px;font-weight:600;width:20px;height:20px;display:flex;align-items:center;justify-content:center;border-radius:50%;flex-shrink:0;line-height:1}
-.day-badge{margin-top:3px;padding:0 4px;min-width:16px;height:14px;border-radius:3px;background:#378ADD;color:#fff;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;align-self:flex-start}
-.day-dots{display:flex;gap:3px;margin-top:4px;align-items:center;flex-wrap:wrap}
-.dot{width:6px;height:6px;border-radius:50%}
+.day-num{position:absolute;top:3px;left:3px;font-size:11px;font-weight:600;width:18px;height:18px;display:flex;align-items:center;justify-content:center;border-radius:50%;line-height:1}
+.day-sched{position:absolute;bottom:3px;right:3px;display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+.day-badge{padding:1px 5px;min-width:20px;height:18px;border-radius:4px;background:#378ADD;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.day-dots{display:flex;gap:3px;align-items:center}
+.dot{width:8px;height:8px;border-radius:50%}
 .dot-m{background:#BA7517}
 .dot-e{background:#378ADD}
 
@@ -698,19 +698,21 @@ function renderMonth() {
     const cnt = badgeCount(state.curYear, state.curMonth, d);
     const num = document.createElement('div'); num.className = 'day-num'; num.textContent = d;
     el.appendChild(num);
+    const sched = document.createElement('div'); sched.className = 'day-sched';
     if (cnt === -1) {
-      const b = document.createElement('div'); b.className = 'day-badge'; b.style.background='#e24b4a'; b.style.fontSize='7px'; b.textContent = '休'; el.appendChild(b);
+      const b = document.createElement('div'); b.className = 'day-badge'; b.style.background='#e24b4a'; b.textContent = '休'; sched.appendChild(b);
     } else if (cnt > 0) {
-      const b = document.createElement('div'); b.className = 'day-badge'; b.textContent = cnt; el.appendChild(b);
+      const b = document.createElement('div'); b.className = 'day-badge'; b.textContent = cnt; sched.appendChild(b);
     } else {
       const r = getDayData(state.curYear, state.curMonth, d);
       if (r.morning || r.evening) {
         const dots = document.createElement('div'); dots.className = 'day-dots';
         if (r.morning) { const dt = document.createElement('div'); dt.className = 'dot dot-m'; dots.appendChild(dt); }
         if (r.evening) { const dt = document.createElement('div'); dt.className = 'dot dot-e'; dots.appendChild(dt); }
-        el.appendChild(dots);
+        sched.appendChild(dots);
       }
     }
+    el.appendChild(sched);
     el.addEventListener('click', () => goWeek(d));
     grid.appendChild(el);
   }
