@@ -1050,25 +1050,31 @@ async function saveNotifSettings() {
 }
 
 // ===== 起動 =====
-document.addEventListener('DOMContentLoaded', () => {
-  // 認証リスナーを先に登録（getRedirectResult の完了を待たない）
-  auth.onAuthStateChanged(user => {
-    document.getElementById('loadingScreen').style.display = 'none';
-    document.getElementById('app').style.display = 'flex';
-    if (user) {
-      state.user = user;
-      updateAccountUI(user);
-      show('scMonth');
-      startSync(state.curYear, state.curMonth);
-    } else {
-      state.user = null;
-      show('scLogin');
-    }
-  });
-
-  // リダイレクト結果は非同期で処理（起動をブロックしない）
-  auth.getRedirectResult().catch(e => console.warn('redirect result:', e.message));
+// DOMContentLoaded不要（スクリプトはbody末尾のため既にDOM構築済み）
+auth.onAuthStateChanged(user => {
+  document.getElementById('loadingScreen').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  if (user) {
+    state.user = user;
+    updateAccountUI(user);
+    show('scMonth');
+    startSync(state.curYear, state.curMonth);
+  } else {
+    state.user = null;
+    show('scLogin');
+  }
 });
+
+// リダイレクト結果は非同期で処理
+auth.getRedirectResult().catch(e => console.warn('redirect result:', e.message));
+
+// 10秒以内にonAuthStateChangedが呼ばれなければエラー表示
+setTimeout(() => {
+  const ls = document.getElementById('loadingScreen');
+  if (ls && ls.style.display !== 'none') {
+    ls.innerHTML = '<div style="text-align:center;padding:24px;color:#ff3b30;font-size:14px">読み込みに失敗しました。<br>通信環境を確認してページを再読み込みしてください。<br><br><button onclick="location.reload()" style="padding:10px 20px;background:#378ADD;color:#fff;border:none;border-radius:8px;font-size:15px">再読み込み</button></div>';
+  }
+}, 10000);
 
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('./sw.js').then(reg => {
