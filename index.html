@@ -637,6 +637,7 @@ function updateModeLbls() {
 function getJPHolidays(year) {
   const h = new Set();
   const key = (m, d) => m + '-' + d;
+  const dim = m => new Date(year, m, 0).getDate();
   // 固定祝日
   [[1,1],[2,11],[2,23],[4,29],[5,3],[5,4],[5,5],[8,11],[11,3],[11,23]].forEach(([m,d]) => h.add(key(m,d)));
   // 春分の日・秋分の日
@@ -656,12 +657,26 @@ function getJPHolidays(year) {
     const [m,d] = k.split('-').map(Number);
     if (new Date(year,m-1,d).getDay() === 0) {
       let nm=m, nd=d+1;
-      if (nd > new Date(year,nm,0).getDate()) { nd=1; nm++; }
-      while (h.has(key(nm,nd))) { nd++; if (nd > new Date(year,nm,0).getDate()) { nd=1; nm++; } }
+      if (nd > dim(nm)) { nd=1; nm++; }
+      while (h.has(key(nm,nd))) { nd++; if (nd > dim(nm)) { nd=1; nm++; } }
       h.add(key(nm,nd));
     }
   });
+  // 国民の休日（祝日に挟まれた平日）
+  for (let m = 1; m <= 12; m++) {
+    for (let d = 1; d <= dim(m); d++) {
+      if (new Date(year,m-1,d).getDay() === 0 || h.has(key(m,d))) continue;
+      let pm=m, pd=d-1; if (pd<1) { pm--; if(pm<1)continue; pd=dim(pm); }
+      let nm=m, nd=d+1; if (nd>dim(m)) { nm++; if(nm>12)continue; nd=1; }
+      if (h.has(key(pm,pd)) && h.has(key(nm,nd))) h.add(key(m,d));
+    }
+  }
   return h;
+}
+const _jpHolCache = {};
+function isJPHoliday(y, m, d) {
+  if (!_jpHolCache[y]) _jpHolCache[y] = getJPHolidays(y);
+  return _jpHolCache[y].has(m + '-' + d);
 }
 
 function renderMonth() {
@@ -674,11 +689,10 @@ function renderMonth() {
   for (let i = 0; i < firstDow; i++) {
     const el = document.createElement('div'); el.className = 'cal-day'; grid.appendChild(el);
   }
-  const jpHolidays = getJPHolidays(state.curYear);
   for (let d = 1; d <= daysInMonth; d++) {
     const dow       = new Date(state.curYear, state.curMonth - 1, d).getDay();
     const isToday   = state.curYear === today.getFullYear() && state.curMonth === today.getMonth() + 1 && d === today.getDate();
-    const isHoliday = jpHolidays.has(state.curMonth + '-' + d);
+    const isHoliday = isJPHoliday(state.curYear, state.curMonth, d);
     const el        = document.createElement('div');
     el.className    = 'cal-day' + (isToday ? ' today' : '') + (dow === 0 || isHoliday ? ' sun-d' : dow === 6 ? ' sat-d' : '');
     const cnt = badgeCount(state.curYear, state.curMonth, d);
@@ -788,7 +802,8 @@ function renderWeek() {
   days.forEach(day => {
     const th  = document.createElement('th'); th.className = 'dhead';
     const cnt = badgeCount(day.y, day.m, day.d);
-    const dc  = day.dow === 0 ? 'color:#e24b4a' : day.dow === 6 ? 'color:#378ADD' : '';
+    const isHol = isJPHoliday(day.y, day.m, day.d);
+    const dc  = (day.dow === 0 || isHol) ? 'color:#e24b4a' : day.dow === 6 ? 'color:#378ADD' : '';
     th.innerHTML = '<div class="dh-date" style="' + dc + '">' + day.m + '/' + day.d + '</div>' +
       '<div class="dh-dow">' + DOW[day.dow] + '</div>' +
       '<div class="dh-badge' + (cnt > 0 ? '' : ' z') + '">' + cnt + '</div>';
@@ -898,7 +913,8 @@ function renderWeek() {
 // ===== 1日表示 =====
 function goDay(day) {
   state.curDay = day;
-  const dc = day.dow === 0 ? 'color:#e24b4a' : day.dow === 6 ? 'color:#378ADD' : '';
+  const isHol = isJPHoliday(day.y, day.m, day.d);
+  const dc = (day.dow === 0 || isHol) ? 'color:#e24b4a' : day.dow === 6 ? 'color:#378ADD' : '';
   document.getElementById('dayTitle').innerHTML = '<span style="' + dc + '">' + day.m + '月' + day.d + '日（' + DOW[day.dow] + '）</span>';
   renderDay(); show('scDay'); updateModeLbls();
 }
