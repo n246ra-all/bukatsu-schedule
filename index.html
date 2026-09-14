@@ -773,8 +773,8 @@ function renderWeek() {
 
   // 休み行
   addDiv('部活');
-  const hrow = document.createElement('tr');
-  const ht0  = document.createElement('td'); ht0.className = 'tcol'; ht0.textContent = '休み'; hrow.appendChild(ht0);
+  const holidayRow = document.createElement('tr');
+  const ht0  = document.createElement('td'); ht0.className = 'tcol'; ht0.textContent = '休み'; holidayRow.appendChild(ht0);
   days.forEach((day) => {
     const r = getDayData(day.y, day.m, day.d);
     if (state.isEdit) {
@@ -785,14 +785,14 @@ function renderWeek() {
         const cur = getDayData(day.y, day.m, day.d);
         saveDayData(day.y, day.m, day.d, { holiday: cb.checked, morning: cb.checked ? false : cur.morning, evening: cb.checked ? null : cur.evening });
       });
-      td.appendChild(cb); hrow.appendChild(td);
+      td.appendChild(cb); holidayRow.appendChild(td);
     } else {
       const td = document.createElement('td'); td.className = 'vcell';
       td.innerHTML = '<div class="vcell-inner">' + (r.holiday ? '<div style="font-size:11px;color:#8e8e93;font-weight:600">休</div>' : '') + '</div>';
-      hrow.appendChild(td);
+      holidayRow.appendChild(td);
     }
   });
-  tbody.appendChild(hrow);
+  tbody.appendChild(holidayRow);
 
   addDiv('朝練');
   const mrow = document.createElement('tr');
