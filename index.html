@@ -648,8 +648,10 @@ function renderMonth() {
     const isToday = state.curYear === today.getFullYear() && state.curMonth === today.getMonth() + 1 && d === today.getDate();
     const el      = document.createElement('div');
     el.className  = 'cal-day' + (isToday ? ' today' : '') + (dow === 0 ? ' sun-d' : dow === 6 ? ' sat-d' : '');
-    const num = document.createElement('div'); num.className = 'day-num'; num.textContent = d; el.appendChild(num);
     const cnt = badgeCount(state.curYear, state.curMonth, d);
+    const num = document.createElement('div'); num.className = 'day-num'; num.textContent = d;
+    if (cnt === -1) num.style.color = '#e24b4a';
+    el.appendChild(num);
     if (cnt === -1) {
       const b = document.createElement('div'); b.className = 'day-badge'; b.style.background='#8e8e93'; b.style.fontSize='7px'; b.textContent = '休'; el.appendChild(b);
     } else if (cnt > 0) {
