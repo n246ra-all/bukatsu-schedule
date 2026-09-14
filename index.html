@@ -699,7 +699,7 @@ function renderMonth() {
     const num = document.createElement('div'); num.className = 'day-num'; num.textContent = d;
     el.appendChild(num);
     if (cnt === -1) {
-      const b = document.createElement('div'); b.className = 'day-badge'; b.style.background='#8e8e93'; b.style.fontSize='7px'; b.textContent = '休'; el.appendChild(b);
+      const b = document.createElement('div'); b.className = 'day-badge'; b.style.background='#e24b4a'; b.style.fontSize='7px'; b.textContent = '休'; el.appendChild(b);
     } else if (cnt > 0) {
       const b = document.createElement('div'); b.className = 'day-badge'; b.textContent = cnt; el.appendChild(b);
     } else {
