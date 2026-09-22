@@ -102,8 +102,8 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
 .wk-drow{height:30px;border-bottom:0.5px solid #f0f0f5}
 .wk-drow.hour{border-bottom-color:#d0d0d5}
 .wk-session{position:absolute;left:3px;right:3px;border-radius:6px;touch-action:none;min-height:22px;cursor:pointer;z-index:3}
-.wk-session.s0{background:#378ADD}
-.wk-session.s1{background:#BA7517}
+.wk-session.sm{background:#BA7517}
+.wk-session.se{background:#378ADD}
 .wk-slabel{position:absolute;top:50%;left:0;right:0;transform:translateY(-50%);text-align:center;font-size:9px;color:#fff;line-height:1.3;pointer-events:none;font-weight:700;text-shadow:0 1px 2px rgba(0,0,0,0.35)}
 .wk-handle{position:absolute;left:50%;width:34px;height:34px;margin-left:-17px;border-radius:50%;touch-action:none;z-index:5;display:flex;align-items:center;justify-content:center}
 .wk-handle::after{content:'';width:18px;height:18px;border-radius:50%;background:#fff;border:2.5px solid rgba(0,0,0,0.25);box-shadow:0 1px 3px rgba(0,0,0,0.3)}
@@ -114,7 +114,15 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
 .wk-hbtn.on{background:#e24b4a;color:#fff}
 .wk-holiday-strip{position:absolute;inset:0;background:rgba(200,200,210,0.3);display:flex;align-items:center;justify-content:center;pointer-events:none}
 .wk-holiday-lbl{font-size:9px;color:#8e8e93;font-weight:700;writing-mode:vertical-rl;letter-spacing:2px}
-.wk-add-badge{position:absolute;bottom:4px;right:4px;width:18px;height:18px;border-radius:50%;background:#378ADD;color:#fff;font-size:14px;display:flex;align-items:center;justify-content:center;opacity:0.5;pointer-events:none}
+.wk-session.moving{outline:2.5px dashed #fff;outline-offset:-3px;opacity:0.85}
+.wk-menu-bg{position:fixed;inset:0;z-index:900}
+.wk-menu{position:fixed;z-index:901;background:#fff;border-radius:12px;box-shadow:0 6px 24px rgba(0,0,0,0.22);overflow:hidden;min-width:150px}
+.wk-menu-ttl{padding:9px 14px;font-size:11px;color:#8e8e93;border-bottom:0.5px solid #e5e5ea;background:#f9f9fb}
+.wk-menu-item{display:block;width:100%;padding:13px 14px;font-size:15px;text-align:left;background:none;border:none;border-bottom:0.5px solid #e5e5ea;color:#1c1c1e}
+.wk-menu-item:last-child{border-bottom:none}
+.wk-menu-item:active{background:#ebebf0}
+.wk-menu-item.danger{color:#e24b4a}
+.wk-movehint{position:fixed;left:50%;transform:translateX(-50%);bottom:24px;z-index:800;background:rgba(0,0,0,0.8);color:#fff;font-size:13px;padding:9px 18px;border-radius:20px}
 
 /* ===== 1日表示（セッション） ===== */
 input[type=checkbox]{width:22px;height:22px;cursor:pointer;accent-color:#BA7517;display:block;margin:0 auto}
@@ -704,8 +712,9 @@ function renderMonth() {
       const r = getDayData(state.curYear, state.curMonth, d);
       if (r.sessions.length > 0) {
         const dots = document.createElement('div'); dots.className = 'day-dots';
-        const dotCls = ['dot dot-m', 'dot dot-e'];
-        r.sessions.forEach((_, i) => { const dt = document.createElement('div'); dt.className = dotCls[i] || 'dot dot-e'; dots.appendChild(dt); });
+        sortSessions(r.sessions).forEach(s => {
+          const dt = document.createElement('div'); dt.className = 'dot ' + (isMorning(s) ? 'dot-m' : 'dot-e'); dots.appendChild(dt);
+        });
         sched.appendChild(dots);
       }
     }
@@ -743,10 +752,10 @@ function renderTodayPanel() {
       const empty = document.createElement('div'); empty.className = 'today-panel-empty'; empty.textContent = '予定なし';
       body.appendChild(empty);
     } else {
-      const colors = ['#BA7517', '#378ADD'];
-      r.sessions.forEach((s, i) => {
+      sortSessions(r.sessions).forEach(s => {
         const item = document.createElement('div'); item.className = 'today-panel-item';
-        item.innerHTML = '<div class="today-panel-dot" style="background:' + colors[i] + '"></div><span>' + s.start + ' 〜 ' + s.end + '</span>';
+        item.innerHTML = '<div class="today-panel-dot" style="background:' + (isMorning(s) ? '#BA7517' : '#378ADD') + '"></div>' +
+          '<span>' + sessName(s) + '　' + s.start + ' 〜 ' + s.end + '</span>';
         body.appendChild(item);
       });
     }
@@ -785,9 +794,119 @@ function getWeekDays() {
   return days;
 }
 
+// ===== 朝練 / 夕練の判定 =====
+const NOON = 12 * 60;
+function isMorning(sess) { return parseT(sess.start) < NOON; }
+function sessName(sess)  { return isMorning(sess) ? '朝練' : '夕練'; }
+function sortSessions(list) { return list.slice().sort((a, b) => parseT(a.start) - parseT(b.start)); }
+function hasType(list, morning) { return list.some(s => isMorning(s) === morning); }
+
+// ドラッグ直後のクリック誤爆を防ぐフラグ
+let _wkDragging = false;
+
+function closeWkMenu() {
+  document.querySelectorAll('.wk-menu-bg,.wk-menu,.wk-movehint').forEach(el => el.remove());
+  document.querySelectorAll('.wk-session.moving').forEach(el => el.classList.remove('moving'));
+}
+
+function openSessionMenu(bar, sess, idx, day) {
+  closeWkMenu();
+  const bg = document.createElement('div'); bg.className = 'wk-menu-bg';
+  bg.addEventListener('click', closeWkMenu);
+  document.body.appendChild(bg);
+
+  const menu = document.createElement('div'); menu.className = 'wk-menu';
+  const ttl = document.createElement('div'); ttl.className = 'wk-menu-ttl';
+  ttl.textContent = day.m + '/' + day.d + ' ' + sessName(sess) + '  ' + sess.start + '〜' + sess.end;
+  menu.appendChild(ttl);
+
+  const addItem = (label, cls, fn) => {
+    const b = document.createElement('button');
+    b.className = 'wk-menu-item' + (cls ? ' ' + cls : '');
+    b.textContent = label;
+    b.addEventListener('click', e => { e.stopPropagation(); fn(); });
+    menu.appendChild(b);
+  };
+
+  addItem('移動', '', () => {
+    closeWkMenu();
+    bar.classList.add('moving');
+    startBarMove(bar, idx, day);
+  });
+  addItem('削除', 'danger', () => {
+    closeWkMenu();
+    const cur = getDayData(day.y, day.m, day.d);
+    cur.sessions.splice(idx, 1);
+    saveDayData(day.y, day.m, day.d, { holiday: cur.holiday, sessions: cur.sessions });
+  });
+  addItem('キャンセル', '', closeWkMenu);
+
+  document.body.appendChild(menu);
+  const r = bar.getBoundingClientRect();
+  const mw = menu.offsetWidth, mh = menu.offsetHeight;
+  let left = r.left + r.width / 2 - mw / 2;
+  left = Math.max(8, Math.min(left, window.innerWidth - mw - 8));
+  let top = r.bottom + 6;
+  if (top + mh > window.innerHeight - 8) top = Math.max(8, r.top - mh - 6);
+  menu.style.left = left + 'px';
+  menu.style.top  = top + 'px';
+}
+
+// 「移動」選択後：バー本体をドラッグして時間帯ごと移動
+function startBarMove(bar, idx, day) {
+  const hint = document.createElement('div');
+  hint.className = 'wk-movehint';
+  hint.textContent = 'バーをドラッグして移動';
+  document.body.appendChild(hint);
+
+  const colEl = bar.parentElement;
+  const onDown = e => {
+    e.stopPropagation(); e.preventDefault();
+    _wkDragging = true;
+    bar.setPointerCapture(e.pointerId);
+    const colTop   = colEl.getBoundingClientRect().top;
+    const cur0     = getDayData(day.y, day.m, day.d);
+    const s0       = cur0.sessions[idx];
+    if (!s0) return;
+    const dur      = parseT(s0.end) - parseT(s0.start);
+    const grabOff  = (e.clientY - colTop) - minToPx(parseT(s0.start));
+    const lbl      = bar.querySelector('.wk-slabel');
+
+    const onMove = ev => {
+      ev.preventDefault();
+      let ns = pxToMin(ev.clientY - colTop - grabOff);
+      ns = Math.max(T_START, Math.min(ns, T_END - dur));
+      const cur  = getDayData(day.y, day.m, day.d);
+      const sess = cur.sessions[idx];
+      if (!sess) return;
+      sess.start = fmtMin(ns);
+      sess.end   = fmtMin(ns + dur);
+      bar.style.top = minToPx(ns) + 'px';
+      if (lbl) lbl.textContent = sess.start + '–' + sess.end;
+      const key = docId(day.y, day.m);
+      if (!state.localCache[key]) state.localCache[key] = {};
+      state.localCache[key][String(day.d)] = cur;
+    };
+    const onUp = () => {
+      bar.removeEventListener('pointermove', onMove);
+      bar.removeEventListener('pointerup', onUp);
+      bar.removeEventListener('pointercancel', onUp);
+      bar.removeEventListener('pointerdown', onDown);
+      closeWkMenu();
+      const cur = getDayData(day.y, day.m, day.d);
+      saveDayData(day.y, day.m, day.d, { holiday: cur.holiday, sessions: sortSessions(cur.sessions) });
+      setTimeout(() => { _wkDragging = false; }, 50);
+    };
+    bar.addEventListener('pointermove', onMove);
+    bar.addEventListener('pointerup', onUp);
+    bar.addEventListener('pointercancel', onUp);
+  };
+  bar.addEventListener('pointerdown', onDown);
+}
+
 function makeSessionBar(sess, idx, day, colEl) {
   const bar = document.createElement('div');
-  bar.className = 'wk-session s' + idx;
+  bar.className = 'wk-session ' + (isMorning(sess) ? 'sm' : 'se');
   const top = minToPx(parseT(sess.start));
   const bot = minToPx(parseT(sess.end));
   const h = Math.max(22, bot - top);
@@ -802,16 +921,34 @@ function makeSessionBar(sess, idx, day, colEl) {
     const hb = document.createElement('div'); hb.className = 'wk-handle wk-handle-b'; bar.appendChild(hb);
     makeDragHandler(ht, day, idx, 'start', colEl, lbl);
     makeDragHandler(hb, day, idx, 'end',   colEl, lbl);
+
+    // 長押しでメニュー
+    let pressTimer = null, downXY = null;
+    bar.addEventListener('pointerdown', e => {
+      if (bar.classList.contains('moving')) return;
+      downXY = { x: e.clientX, y: e.clientY };
+      pressTimer = setTimeout(() => {
+        pressTimer = null;
+        _wkDragging = true;
+        openSessionMenu(bar, sess, idx, day);
+        setTimeout(() => { _wkDragging = false; }, 300);
+      }, 500);
+    });
+    const cancelPress = () => { if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; } };
+    bar.addEventListener('pointerup', cancelPress);
+    bar.addEventListener('pointercancel', cancelPress);
+    bar.addEventListener('pointermove', e => {
+      if (pressTimer && downXY && (Math.abs(e.clientX - downXY.x) > 8 || Math.abs(e.clientY - downXY.y) > 8)) cancelPress();
+    });
+    bar.addEventListener('contextmenu', e => e.preventDefault());
   }
   bar.addEventListener('click', e => {
     e.stopPropagation();
+    if (_wkDragging || bar.classList.contains('moving')) return;
     goDay(day);
   });
   return bar;
 }
-
-// ドラッグ直後のクリック誤爆を防ぐフラグ
-let _wkDragging = false;
 
 function makeDragHandler(handle, day, idx, which, colEl, lbl) {
   handle.addEventListener('pointerdown', e => {
@@ -868,7 +1005,11 @@ function renderWeek() {
   document.getElementById('weekTitle').textContent = days[0].m + '/' + days[0].d + '〜' + days[6].m + '/' + days[6].d;
   document.getElementById('weekModeLbl').textContent = state.isEdit ? '✏️ 編集' : '👁 閲覧';
 
-  const grid = document.getElementById('weekTbl'); grid.innerHTML = '';
+  const grid = document.getElementById('weekTbl');
+  // 再描画でスクロール位置が戻らないよう保持
+  const prevScroll = grid.querySelector('.wk-scroll');
+  const savedTop   = prevScroll ? prevScroll.scrollTop : null;
+  grid.innerHTML = '';
 
   // ヘッダー行
   const header = document.createElement('div'); header.className = 'wk-header';
@@ -937,7 +1078,7 @@ function renderWeek() {
 
     // セッションバー
     r.sessions.forEach((sess, idx) => {
-      col.appendChild(makeSessionBar(sess, idx, day, col));
+      if (!r.holiday) col.appendChild(makeSessionBar(sess, idx, day, col));
     });
 
     // 祝日・休みオーバーレイ
@@ -948,29 +1089,31 @@ function renderWeek() {
       strip.appendChild(lbl2); col.appendChild(strip);
     }
 
-    // 編集モード：空きスロットをタップしてセッション追加
+    // 編集モード：午前タップ→朝練 / 午後タップ→夕練
     if (state.isEdit) {
       col.addEventListener('click', e => {
         if (_wkDragging) return;
         const cur = getDayData(day.y, day.m, day.d);
-        if (cur.holiday || cur.sessions.length >= 2) return;
+        if (cur.holiday) return;
         const startMin = pxToMin(e.clientY - col.getBoundingClientRect().top);
-        const endMin   = Math.min(startMin + 120, T_END);
+        const morning  = startMin < NOON;
+        if (hasType(cur.sessions, morning)) {
+          showToast((morning ? '朝練' : '夕練') + 'はすでに登録されています');
+          return;
+        }
+        const limit  = morning ? NOON : T_END;
+        const endMin = Math.min(startMin + 120, limit);
         if (endMin - startMin < 30) return;
         cur.sessions.push({ start: fmtMin(startMin), end: fmtMin(endMin) });
-        saveDayData(day.y, day.m, day.d, { holiday: cur.holiday, sessions: cur.sessions });
+        saveDayData(day.y, day.m, day.d, { holiday: cur.holiday, sessions: sortSessions(cur.sessions) });
       });
-
-      if (!r.holiday && r.sessions.length < 2) {
-        const badge = document.createElement('div'); badge.className = 'wk-add-badge'; badge.textContent = '+';
-        col.appendChild(badge);
-      }
     }
 
     body.appendChild(col);
   });
 
   scroll.appendChild(body); grid.appendChild(scroll);
+  if (savedTop !== null) scroll.scrollTop = savedTop;
 
   // 現在時刻ライン（今日が週内にある場合）
   const nowMin = new Date().getHours() * 60 + new Date().getMinutes();
@@ -1016,17 +1159,19 @@ function renderDay() {
   sec.style.opacity       = isHoliday ? '0.35' : '1';
   sec.style.pointerEvents = isHoliday ? 'none' : '';
 
-  const colors = ['#BA7517', '#378ADD'];
-  r.sessions.forEach((sess, idx) => {
-    const card = document.createElement('div'); card.className = 'section-card'; card.style.marginTop = '8px';
-    card.style.cssText += 'border-left:4px solid ' + colors[idx] + ';padding:10px 12px;display:flex;align-items:center;justify-content:space-between';
+  sortSessions(r.sessions).forEach(sess => {
+    const idx = r.sessions.indexOf(sess);
+    const mo  = isMorning(sess);
+    const card = document.createElement('div'); card.className = 'section-card';
+    card.style.cssText += 'margin-top:8px;border-left:4px solid ' + (mo ? '#BA7517' : '#378ADD') +
+      ';padding:10px 12px;display:flex;align-items:center;justify-content:space-between';
     const info = document.createElement('div');
-    info.innerHTML = '<div style="font-size:15px;font-weight:600">' + sess.start + ' 〜 ' + sess.end + '</div>' +
-      '<div style="font-size:11px;color:#8e8e93">練習 ' + (idx + 1) + '</div>';
+    info.innerHTML = '<div style="font-size:11px;color:#8e8e93;font-weight:600">' + sessName(sess) + '</div>' +
+      '<div style="font-size:16px;font-weight:600">' + sess.start + ' 〜 ' + sess.end + '</div>';
     card.appendChild(info);
     if (state.isEdit) {
       const del = document.createElement('button');
-      del.textContent = '削除'; del.style.cssText = 'font-size:12px;color:#e24b4a;background:none;border:1px solid #e24b4a;border-radius:6px;padding:4px 10px';
+      del.textContent = '削除'; del.style.cssText = 'font-size:12px;color:#e24b4a;background:none;border:1px solid #e24b4a;border-radius:6px;padding:5px 12px';
       del.addEventListener('click', () => {
         const cur = getDayData(y, m, d);
         cur.sessions.splice(idx, 1);
@@ -1037,17 +1182,19 @@ function renderDay() {
     sec.appendChild(card);
   });
 
-  if (state.isEdit && !isHoliday && r.sessions.length < 2) {
-    const addBtn = document.createElement('button');
-    addBtn.textContent = '＋ 練習を追加';
-    addBtn.style.cssText = 'width:100%;margin-top:8px;padding:12px;border-radius:10px;border:1.5px dashed #378ADD;color:#378ADD;background:none;font-size:14px;font-weight:600';
-    addBtn.addEventListener('click', () => {
-      const cur = getDayData(y, m, d);
-      const defaults = [{ start: '8:00', end: '10:00' }, { start: '16:00', end: '18:00' }];
-      cur.sessions.push(defaults[cur.sessions.length] || { start: '15:00', end: '17:00' });
-      saveDayData(y, m, d, { holiday: cur.holiday, sessions: cur.sessions });
+  if (state.isEdit && !isHoliday) {
+    [[true, '朝練', '8:00', '10:00', '#BA7517'], [false, '夕練', '16:00', '18:00', '#378ADD']].forEach(([mo, name, st, en, cl]) => {
+      if (hasType(r.sessions, mo)) return;
+      const btn = document.createElement('button');
+      btn.textContent = '＋ ' + name + 'を追加';
+      btn.style.cssText = 'width:100%;margin-top:8px;padding:12px;border-radius:10px;border:1.5px dashed ' + cl + ';color:' + cl + ';background:none;font-size:14px;font-weight:600';
+      btn.addEventListener('click', () => {
+        const cur = getDayData(y, m, d);
+        cur.sessions.push({ start: st, end: en });
+        saveDayData(y, m, d, { holiday: cur.holiday, sessions: sortSessions(cur.sessions) });
+      });
+      sec.appendChild(btn);
     });
-    sec.appendChild(addBtn);
   }
 }
 
