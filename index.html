@@ -85,38 +85,36 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
 .today-panel-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 .today-panel-empty{font-size:12px;color:#c0c0c8}
 
-/* ===== 週カレンダー ===== */
-.week-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;flex-shrink:0}
-.week-tbl{border-collapse:collapse;width:100%;table-layout:fixed}
-.week-tbl th,.week-tbl td{border:1px solid #c8c8d0;padding:0;text-align:center}
-.tcol{width:46px;font-size:11px;color:#8e8e93;padding:16px 4px;background:#f9f9fb;font-weight:500;text-align:left;white-space:nowrap}
-.dhead{padding:8px 2px;background:#f9f9fb;cursor:pointer}
-.dhead:active{background:#ebebf0}
-.dh-date{font-size:12px;font-weight:600;color:#1c1c1e;line-height:1.2}
-.dh-dow{font-size:10px;color:#8e8e93}
-.dh-badge{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:50%;background:#378ADD;color:#fff;font-size:8px;font-weight:600;margin-top:2px}
-.dh-badge.z{background:transparent;color:transparent}
+/* ===== 週カレンダー（時間グリッド） ===== */
+.wk-grid{display:flex;flex-direction:column;flex:1;overflow:hidden;min-height:0}
+.wk-header{display:flex;flex-shrink:0;border-bottom:1px solid #d0d0d5;background:#f9f9fb}
+.wk-hcorner{width:36px;flex-shrink:0;border-right:0.5px solid #d0d0d5}
+.wk-hday{flex:1;padding:5px 2px;text-align:center;border-left:0.5px solid #d0d0d5;cursor:pointer;-webkit-user-select:none;user-select:none}
+.wk-hday:active{background:#ebebf0}
+.wk-hday-date{font-size:11px;font-weight:700;line-height:1.3}
+.wk-hday-dow{font-size:9px;color:#8e8e93}
+.wk-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.wk-body{display:flex;position:relative}
+.wk-timecol{width:36px;flex-shrink:0;position:relative}
+.wk-trow{height:30px;display:flex;align-items:flex-start;justify-content:flex-end;padding-right:5px}
+.wk-tlabel{font-size:9px;color:#8e8e93;transform:translateY(-50%);display:block;white-space:nowrap}
+.wk-daycol{flex:1;border-left:0.5px solid #d0d0d5;position:relative;-webkit-user-select:none;user-select:none}
+.wk-drow{height:30px;border-bottom:0.5px solid #f0f0f5}
+.wk-drow.hour{border-bottom-color:#d0d0d5}
+.wk-session{position:absolute;left:2px;right:2px;border-radius:5px;touch-action:none;overflow:hidden;min-height:22px;cursor:pointer}
+.wk-session.s0{background:#378ADD}
+.wk-session.s1{background:#BA7517}
+.wk-slabel{font-size:8px;color:#fff;padding:2px 4px;line-height:1.4;pointer-events:none;font-weight:600}
+.wk-handle{position:absolute;left:50%;transform:translateX(-50%);width:24px;height:8px;background:rgba(255,255,255,0.45);border-radius:4px}
+.wk-handle-t{top:3px}
+.wk-handle-b{bottom:3px}
+.wk-holiday-strip{position:absolute;inset:0;background:rgba(200,200,210,0.3);display:flex;align-items:center;justify-content:center;pointer-events:none}
+.wk-holiday-lbl{font-size:9px;color:#8e8e93;font-weight:700;writing-mode:vertical-rl;letter-spacing:2px}
+.wk-add-badge{position:absolute;bottom:4px;right:4px;width:18px;height:18px;border-radius:50%;background:#378ADD;color:#fff;font-size:14px;display:flex;align-items:center;justify-content:center;opacity:0.5;pointer-events:none}
 
-.wcell{padding:24px 2px;min-height:70px}
-.wcell.mon-on{background:#fff3e0}
-.wcell.eve-on{background:#e8f4fd}
-
-.vcell{padding:0;min-height:70px;border:1px solid #c8c8d0}
-.vcell-inner{width:100%;height:100%;min-height:70px;display:flex;align-items:center;justify-content:center}
-.vcell.mon-on{background:#fff3e0;border-color:#f0c070}
-.vcell.eve-on{background:#e8f4fd;border-color:#90c8f0}
-
-.divrow td{background:#e8e8ee;padding:5px 6px;font-size:11px;color:#666;text-align:left;font-weight:700;border-top:1.5px solid #c8c8d0;border-bottom:1.5px solid #c8c8d0;letter-spacing:.5px}
-
-.clear-row td{background:#f9f9fb;padding:0}
-.clear-cell{padding:6px 2px}
-.clear-cell-btn{font-size:10px;color:#8e8e93;background:none;border:0.5px solid #d0d0d8;border-radius:6px;padding:3px 0;width:90%;cursor:pointer;display:block;margin:0 auto}
-.clear-cell-btn:active{background:#f2f2f7}
-
+/* ===== 1日表示（セッション） ===== */
 input[type=checkbox]{width:22px;height:22px;cursor:pointer;accent-color:#BA7517;display:block;margin:0 auto}
-input[type=radio]{width:22px;height:22px;cursor:pointer;accent-color:#378ADD;display:block;margin:0 auto}
 .cell-dot{font-size:18px;line-height:1}
-.cell-val{font-size:11px;color:#d0d0d8;line-height:1}
 
 /* ===== 1日表示 ===== */
 .day-body{padding:12px 16px 32px;display:flex;flex-direction:column;gap:16px}
@@ -252,10 +250,7 @@ input[type=radio]{width:22px;height:22px;cursor:pointer;accent-color:#378ADD;dis
       <div class="topbar-title" id="weekTitle"></div>
       <div style="min-width:50px;text-align:right;font-size:11px;padding:3px 6px;border-radius:20px" id="weekModeLbl"></div>
     </div>
-    <div class="week-wrap">
-      <table class="week-tbl" id="weekTbl"></table>
-    </div>
-    <div style="padding:10px 16px;font-size:12px;color:#8e8e93;flex-shrink:0">日付をタップすると1日表示に切り替わります</div>
+    <div id="weekTbl" class="wk-grid"></div>
   </div>
 
   <!-- ===== 1日表示 ===== -->
@@ -281,25 +276,7 @@ input[type=radio]{width:22px;height:22px;cursor:pointer;accent-color:#378ADD;dis
           </label>
         </div>
       </div>
-      <div id="dPracticeSection">
-        <div class="section-title">朝練</div>
-        <div class="section-card">
-          <label class="row-item" id="dMorningRow">
-            <input type="checkbox" id="dMorning" style="width:22px;height:22px;accent-color:#BA7517;flex-shrink:0">
-            <div>
-              <div class="row-label">8:00</div>
-              <div class="row-sub">朝練あり</div>
-            </div>
-          </label>
-        </div>
-      </div>
-      <div id="dEveningSection">
-        <div class="section-title">夕練 — 終了時間</div>
-        <div class="section-card">
-          <div id="dEveningList"></div>
-          <button class="clear-btn" id="clearEveBtn">夕練なし（選択解除）</button>
-        </div>
-      </div>
+      <div id="dSessionSection"></div>
     </div>
   </div>
 
@@ -447,6 +424,15 @@ let   messaging = null;
 try { messaging = firebase.messaging(); } catch(e) {}
 
 const TIMES_E   = ['16:00','16:30','17:00','17:30','18:00','18:30','19:00','19:30','20:00','20:30','21:00','21:30','22:00'];
+// 時間グリッド定数
+const SLOT_H  = 30;        // px per 30分
+const T_START = 8 * 60;    // 8:00 (分)
+const T_END   = 22 * 60;   // 22:00 (分)
+const T_SLOTS = (T_END - T_START) / 30; // 28スロット
+function minToPx(min) { return (min - T_START) / 30 * SLOT_H; }
+function pxToMin(relY) { return Math.round(Math.max(0, Math.min(relY, T_SLOTS * SLOT_H)) / SLOT_H) * 30 + T_START; }
+function fmtMin(min) { return Math.floor(min / 60) + ':' + String(min % 60).padStart(2, '0'); }
+function parseT(s) { const [h, m] = s.split(':').map(Number); return h * 60 + (m || 0); }
 const DOW       = ['日','月','火','水','木','金','土'];
 const MAX_CACHE = 6;
 
@@ -556,7 +542,14 @@ function startSync(y, m) {
 
 function getDayData(y, m, d) {
   const cache = state.localCache[docId(y, m)] || {};
-  return cache[String(d)] || { holiday: false, morning: false, evening: null };
+  const raw = cache[String(d)];
+  if (!raw) return { holiday: false, sessions: [] };
+  if (raw.sessions !== undefined) return { holiday: !!raw.holiday, sessions: raw.sessions || [] };
+  // 旧フォーマット変換
+  const sessions = [];
+  if (raw.morning) sessions.push({ start: '8:00', end: '10:00' });
+  if (raw.evening) sessions.push({ start: '16:00', end: raw.evening });
+  return { holiday: !!raw.holiday, sessions };
 }
 
 async function saveDayData(y, m, d, newData) {
@@ -596,8 +589,8 @@ function setSyncStatus(s) {
 
 function badgeCount(y, m, d) {
   const r = getDayData(y, m, d);
-  if (r.holiday) return -1; // -1 = 休み
-  return (r.morning ? 1 : 0) + (r.evening ? 1 : 0);
+  if (r.holiday) return -1;
+  return r.sessions.length;
 }
 
 function refreshCurrentView() {
@@ -705,10 +698,10 @@ function renderMonth() {
       const b = document.createElement('div'); b.className = 'day-badge'; b.textContent = cnt; sched.appendChild(b);
     } else {
       const r = getDayData(state.curYear, state.curMonth, d);
-      if (r.morning || r.evening) {
+      if (r.sessions.length > 0) {
         const dots = document.createElement('div'); dots.className = 'day-dots';
-        if (r.morning) { const dt = document.createElement('div'); dt.className = 'dot dot-m'; dots.appendChild(dt); }
-        if (r.evening) { const dt = document.createElement('div'); dt.className = 'dot dot-e'; dots.appendChild(dt); }
+        const dotCls = ['dot dot-m', 'dot dot-e'];
+        r.sessions.forEach((_, i) => { const dt = document.createElement('div'); dt.className = dotCls[i] || 'dot dot-e'; dots.appendChild(dt); });
         sched.appendChild(dots);
       }
     }
@@ -742,20 +735,16 @@ function renderTodayPanel() {
     if (r.holiday) {
       const empty = document.createElement('div'); empty.className = 'today-panel-empty'; empty.textContent = '部活なし（休み）';
       body.appendChild(empty);
-    } else if (!r.morning && !r.evening) {
+    } else if (r.sessions.length === 0) {
       const empty = document.createElement('div'); empty.className = 'today-panel-empty'; empty.textContent = '予定なし';
       body.appendChild(empty);
     } else {
-      if (r.morning) {
+      const colors = ['#BA7517', '#378ADD'];
+      r.sessions.forEach((s, i) => {
         const item = document.createElement('div'); item.className = 'today-panel-item';
-        item.innerHTML = '<div class="today-panel-dot" style="background:#BA7517"></div><span>朝練あり（8:00）</span>';
+        item.innerHTML = '<div class="today-panel-dot" style="background:' + colors[i] + '"></div><span>' + s.start + ' 〜 ' + s.end + '</span>';
         body.appendChild(item);
-      }
-      if (r.evening) {
-        const item = document.createElement('div'); item.className = 'today-panel-item';
-        item.innerHTML = '<div class="today-panel-dot" style="background:#378ADD"></div><span>夕練 ' + r.evening + ' 終了</span>';
-        body.appendChild(item);
-      }
+      });
     }
     row.appendChild(lbl); row.appendChild(body);
     panel.appendChild(row);
@@ -792,124 +781,192 @@ function getWeekDays() {
   return days;
 }
 
+function makeSessionBar(sess, idx, day, colEl) {
+  const bar = document.createElement('div');
+  bar.className = 'wk-session s' + idx;
+  const top = minToPx(parseT(sess.start));
+  const bot = minToPx(parseT(sess.end));
+  bar.style.top    = top + 'px';
+  bar.style.height = Math.max(22, bot - top) + 'px';
+  const lbl = document.createElement('div'); lbl.className = 'wk-slabel';
+  lbl.textContent = fmtMin(parseT(sess.start)) + '–' + fmtMin(parseT(sess.end));
+  bar.appendChild(lbl);
+  if (state.isEdit) {
+    const ht = document.createElement('div'); ht.className = 'wk-handle wk-handle-t'; bar.appendChild(ht);
+    const hb = document.createElement('div'); hb.className = 'wk-handle wk-handle-b'; bar.appendChild(hb);
+    makeDragHandler(ht, day, idx, 'start', colEl, lbl);
+    makeDragHandler(hb, day, idx, 'end',   colEl, lbl);
+  }
+  bar.addEventListener('click', e => {
+    if (state.isEdit) {
+      e.stopPropagation();
+      const cur = getDayData(day.y, day.m, day.d);
+      const sessions = cur.sessions.filter((_, i) => i !== idx);
+      saveDayData(day.y, day.m, day.d, { holiday: cur.holiday, sessions });
+    } else {
+      goDay(day);
+    }
+  });
+  return bar;
+}
+
+function makeDragHandler(handle, day, idx, which, colEl, lbl) {
+  handle.addEventListener('touchstart', e => {
+    e.stopPropagation(); e.preventDefault();
+    const colTop = colEl.getBoundingClientRect().top;
+    const bar    = handle.parentElement;
+    const onMove = ev => {
+      ev.preventDefault();
+      const touch = ev.touches[0];
+      const relY  = touch.clientY - colTop;
+      const newMin = pxToMin(relY);
+      const cur   = getDayData(day.y, day.m, day.d);
+      const sess  = cur.sessions[idx];
+      if (!sess) return;
+      const startMin = parseT(sess.start);
+      const endMin   = parseT(sess.end);
+      if (which === 'start') {
+        const ns = Math.min(newMin, endMin - 30);
+        sess.start = fmtMin(ns);
+        bar.style.top    = minToPx(ns) + 'px';
+        bar.style.height = Math.max(22, minToPx(endMin) - minToPx(ns)) + 'px';
+      } else {
+        const ne = Math.max(newMin, startMin + 30);
+        sess.end  = fmtMin(ne);
+        bar.style.height = Math.max(22, minToPx(ne) - minToPx(startMin)) + 'px';
+      }
+      lbl.textContent = fmtMin(parseT(sess.start)) + '–' + fmtMin(parseT(sess.end));
+      if (!state.localCache[docId(day.y, day.m)]) state.localCache[docId(day.y, day.m)] = {};
+      state.localCache[docId(day.y, day.m)][String(day.d)] = cur;
+    };
+    const onEnd = () => {
+      document.removeEventListener('touchmove', onMove);
+      document.removeEventListener('touchend', onEnd);
+      const cur = getDayData(day.y, day.m, day.d);
+      saveDayData(day.y, day.m, day.d, { holiday: cur.holiday, sessions: cur.sessions });
+    };
+    document.addEventListener('touchmove', onMove, { passive: false });
+    document.addEventListener('touchend', onEnd);
+  }, { passive: false });
+}
+
 function renderWeek() {
   if (!state.curWeekStart) return;
   const days = getWeekDays();
   document.getElementById('weekTitle').textContent = days[0].m + '/' + days[0].d + '〜' + days[6].m + '/' + days[6].d;
+  document.getElementById('weekModeLbl').textContent = state.isEdit ? '✏️ 編集' : '👁 閲覧';
 
-  const tbl = document.getElementById('weekTbl'); tbl.innerHTML = '';
-  const thead = document.createElement('thead');
-  const hrow  = document.createElement('tr');
-  const th0   = document.createElement('th'); th0.className = 'tcol'; hrow.appendChild(th0);
+  const grid = document.getElementById('weekTbl'); grid.innerHTML = '';
+
+  // ヘッダー行
+  const header = document.createElement('div'); header.className = 'wk-header';
+  const corner = document.createElement('div'); corner.className = 'wk-hcorner'; header.appendChild(corner);
   days.forEach(day => {
-    const th  = document.createElement('th'); th.className = 'dhead';
-    const cnt = badgeCount(day.y, day.m, day.d);
     const isHol = isJPHoliday(day.y, day.m, day.d);
-    const dc  = (day.dow === 0 || isHol) ? 'color:#e24b4a' : day.dow === 6 ? 'color:#378ADD' : '';
-    th.innerHTML = '<div class="dh-date" style="' + dc + '">' + day.m + '/' + day.d + '</div>' +
-      '<div class="dh-dow">' + DOW[day.dow] + '</div>' +
-      '<div class="dh-badge' + (cnt > 0 ? '' : ' z') + '">' + cnt + '</div>';
-    th.addEventListener('click', () => goDay(day));
-    hrow.appendChild(th);
+    const dc = (day.dow === 0 || isHol) ? '#e24b4a' : day.dow === 6 ? '#378ADD' : '';
+    const hd = document.createElement('div'); hd.className = 'wk-hday';
+    hd.innerHTML = '<div class="wk-hday-date" style="' + (dc ? 'color:' + dc : '') + '">' + day.m + '/' + day.d + '</div>' +
+      '<div class="wk-hday-dow" style="' + (dc ? 'color:' + dc : '') + '">' + DOW[day.dow] + '</div>';
+    hd.addEventListener('click', () => goDay(day));
+    header.appendChild(hd);
   });
-  thead.appendChild(hrow); tbl.appendChild(thead);
+  grid.appendChild(header);
 
-  const tbody  = document.createElement('tbody');
-  const addDiv = label => {
-    const tr = document.createElement('tr'); tr.className = 'divrow';
-    const td = document.createElement('td'); td.textContent = label; tr.appendChild(td);
-    for (let i = 0; i < 7; i++) { const t = document.createElement('td'); tr.appendChild(t); }
-    tbody.appendChild(tr);
-  };
+  // スクロール本体
+  const scroll = document.createElement('div'); scroll.className = 'wk-scroll';
+  const body   = document.createElement('div'); body.className = 'wk-body';
+  const gridH  = T_SLOTS * SLOT_H;
 
-  // 休み行
-  addDiv('部活');
-  const holidayRow = document.createElement('tr');
-  const ht0  = document.createElement('td'); ht0.className = 'tcol'; ht0.textContent = '休み'; holidayRow.appendChild(ht0);
-  days.forEach((day) => {
-    const r = getDayData(day.y, day.m, day.d);
-    if (state.isEdit) {
-      const td = document.createElement('td'); td.className = 'wcell' + (r.holiday ? ' mon-on' : ''); td.style.background = r.holiday ? '#f0f0f5' : '';
-      const cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = !!r.holiday;
-      cb.style.accentColor = '#8e8e93';
-      cb.addEventListener('change', () => {
-        const cur = getDayData(day.y, day.m, day.d);
-        saveDayData(day.y, day.m, day.d, { holiday: cb.checked, morning: cb.checked ? false : cur.morning, evening: cb.checked ? null : cur.evening });
-      });
-      td.appendChild(cb); holidayRow.appendChild(td);
-    } else {
-      const td = document.createElement('td'); td.className = 'vcell';
-      td.innerHTML = '<div class="vcell-inner">' + (r.holiday ? '<div style="font-size:11px;color:#8e8e93;font-weight:600">休</div>' : '') + '</div>';
-      holidayRow.appendChild(td);
+  // 時刻ラベル列
+  const timeCol = document.createElement('div'); timeCol.className = 'wk-timecol';
+  timeCol.style.height = gridH + 'px';
+  for (let s = 0; s <= T_SLOTS; s++) {
+    const row = document.createElement('div'); row.className = 'wk-trow'; row.style.height = SLOT_H + 'px';
+    if (s % 2 === 0) {
+      const lbl = document.createElement('span'); lbl.className = 'wk-tlabel';
+      lbl.textContent = Math.floor((T_START + s * 30) / 60) + ':00';
+      row.appendChild(lbl);
     }
-  });
-  tbody.appendChild(holidayRow);
-
-  addDiv('朝練');
-  const mrow = document.createElement('tr');
-  const mt0  = document.createElement('td'); mt0.className = 'tcol'; mt0.textContent = '8:00'; mrow.appendChild(mt0);
-  days.forEach((day) => {
-    const r = getDayData(day.y, day.m, day.d);
-    const disabled = !!r.holiday;
-    if (state.isEdit) {
-      const td = document.createElement('td'); td.className = 'wcell' + (r.morning && !disabled ? ' mon-on' : '');
-      if (disabled) td.style.background = '#f5f5f7';
-      const cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = r.morning && !disabled; cb.disabled = disabled;
-      cb.addEventListener('change', () => {
-        const cur = getDayData(day.y, day.m, day.d);
-        saveDayData(day.y, day.m, day.d, { holiday: cur.holiday, morning: cb.checked, evening: cur.evening });
-      });
-      td.appendChild(cb); mrow.appendChild(td);
-    } else {
-      const td = document.createElement('td'); td.className = 'vcell' + (r.morning && !disabled ? ' mon-on' : '');
-      if (disabled) td.style.background = '#f5f5f7';
-      td.innerHTML = '<div class="vcell-inner">' + (r.morning && !disabled ? '<div class="cell-dot" style="color:#BA7517">●</div>' : '<div class="cell-val">—</div>') + '</div>';
-      mrow.appendChild(td);
-    }
-  });
-  tbody.appendChild(mrow);
-
-  addDiv('夕練終了');
-  TIMES_E.forEach(t => {
-    const tr  = document.createElement('tr');
-    const td0 = document.createElement('td'); td0.className = 'tcol'; td0.textContent = t; tr.appendChild(td0);
-    days.forEach((day, ci) => {
-      const r = getDayData(day.y, day.m, day.d);
-      const disabled = !!r.holiday;
-      if (state.isEdit) {
-        const td = document.createElement('td'); td.className = 'wcell' + (r.evening === t && !disabled ? ' eve-on' : '');
-        if (disabled) td.style.background = '#f5f5f7';
-        const rb = document.createElement('input'); rb.type = 'radio'; rb.name = 'ev' + ci; rb.value = t; rb.checked = r.evening === t && !disabled; rb.disabled = disabled;
-        rb.addEventListener('change', () => {
-          const cur = getDayData(day.y, day.m, day.d);
-          saveDayData(day.y, day.m, day.d, { holiday: cur.holiday, morning: cur.morning, evening: t });
-        });
-        td.appendChild(rb); tr.appendChild(td);
-      } else {
-        const td = document.createElement('td'); td.className = 'vcell' + (r.evening === t && !disabled ? ' eve-on' : '');
-        if (disabled) td.style.background = '#f5f5f7';
-        td.innerHTML = '<div class="vcell-inner">' + (r.evening === t && !disabled ? '<div class="cell-dot" style="color:#378ADD">●</div>' : '') + '</div>';
-        tr.appendChild(td);
-      }
-    });
-    tbody.appendChild(tr);
-  });
-
-  if (state.isEdit) {
-    const cr = document.createElement('tr'); cr.className = 'clear-row';
-    const ctd0 = document.createElement('td'); ctd0.className = 'tcol'; ctd0.style.fontSize = '10px'; ctd0.textContent = 'なし'; cr.appendChild(ctd0);
-    days.forEach(day => {
-      const td  = document.createElement('td'); td.className = 'clear-cell';
-      const btn = document.createElement('button'); btn.className = 'clear-cell-btn'; btn.textContent = '解除';
-      btn.addEventListener('click', () => {
-        const cur = getDayData(day.y, day.m, day.d);
-        saveDayData(day.y, day.m, day.d, { holiday: cur.holiday, morning: cur.morning, evening: null });
-      });
-      td.appendChild(btn); cr.appendChild(td);
-    });
-    tbody.appendChild(cr);
+    timeCol.appendChild(row);
   }
-  tbl.appendChild(tbody);
+  body.appendChild(timeCol);
+
+  // 各日列
+  days.forEach(day => {
+    const r     = getDayData(day.y, day.m, day.d);
+    const isHol = isJPHoliday(day.y, day.m, day.d);
+    const col   = document.createElement('div'); col.className = 'wk-daycol';
+    col.style.height = gridH + 'px';
+
+    // 背景スロット
+    for (let s = 0; s < T_SLOTS; s++) {
+      const row = document.createElement('div');
+      row.className = 'wk-drow' + (s % 2 === 1 ? ' hour' : '');
+      col.appendChild(row);
+    }
+
+    // セッションバー
+    r.sessions.forEach((sess, idx) => {
+      col.appendChild(makeSessionBar(sess, idx, day, col));
+    });
+
+    // 祝日・休みオーバーレイ
+    if (r.holiday || isHol) {
+      const strip = document.createElement('div'); strip.className = 'wk-holiday-strip';
+      const lbl2  = document.createElement('div'); lbl2.className = 'wk-holiday-lbl';
+      lbl2.textContent = r.holiday ? '休み' : '祝日';
+      strip.appendChild(lbl2); col.appendChild(strip);
+    }
+
+    // 編集モード：空タップで休み切替・セッション追加
+    if (state.isEdit) {
+      // 休みトグル（長押し200ms）
+      let pressTimer;
+      col.addEventListener('touchstart', e => {
+        pressTimer = setTimeout(() => {
+          const cur = getDayData(day.y, day.m, day.d);
+          saveDayData(day.y, day.m, day.d, { holiday: !cur.holiday, sessions: cur.holiday ? cur.sessions : [] });
+        }, 600);
+      }, { passive: true });
+      col.addEventListener('touchend', () => clearTimeout(pressTimer));
+      col.addEventListener('touchmove', () => clearTimeout(pressTimer), { passive: true });
+
+      // タップでセッション追加
+      col.addEventListener('click', e => {
+        const cur = getDayData(day.y, day.m, day.d);
+        if (cur.holiday || cur.sessions.length >= 2) return;
+        const relY = e.clientY - col.getBoundingClientRect().top;
+        const startMin = pxToMin(relY);
+        const endMin   = Math.min(startMin + 120, T_END);
+        cur.sessions.push({ start: fmtMin(startMin), end: fmtMin(endMin) });
+        saveDayData(day.y, day.m, day.d, { holiday: cur.holiday, sessions: cur.sessions });
+      });
+
+      // セッション0件のとき＋バッジ表示
+      if (!r.holiday && r.sessions.length < 2) {
+        const badge = document.createElement('div'); badge.className = 'wk-add-badge'; badge.textContent = '+';
+        col.appendChild(badge);
+      }
+    }
+
+    body.appendChild(col);
+  });
+
+  scroll.appendChild(body); grid.appendChild(scroll);
+
+  // 現在時刻ライン（今日が週内にある場合）
+  const nowMin = new Date().getHours() * 60 + new Date().getMinutes();
+  if (nowMin >= T_START && nowMin <= T_END) {
+    const todayIdx = days.findIndex(d => d.y === today.getFullYear() && d.m === today.getMonth() + 1 && d.d === today.getDate());
+    if (todayIdx >= 0) {
+      const cols = body.querySelectorAll('.wk-daycol');
+      if (cols[todayIdx]) {
+        const line = document.createElement('div');
+        line.style.cssText = 'position:absolute;left:0;right:0;height:2px;background:#e24b4a;pointer-events:none;z-index:10;top:' + minToPx(nowMin) + 'px';
+        cols[todayIdx].appendChild(line);
+      }
+    }
+  }
 }
 
 // ===== 1日表示 =====
@@ -930,50 +987,50 @@ function renderDay() {
   // 休みチェックボックス
   const hCb = document.getElementById('dHoliday');
   hCb.checked = isHoliday; hCb.disabled = !state.isEdit;
-  document.getElementById('dHolidayRow').className = 'row-item' + (isHoliday ? ' vo' : '') + (state.isEdit ? '' : ' vo');
+  document.getElementById('dHolidayRow').className = 'row-item' + (state.isEdit ? '' : ' vo');
   hCb.onchange = () => {
     const cur = getDayData(y, m, d);
-    saveDayData(y, m, d, { holiday: hCb.checked, morning: hCb.checked ? false : cur.morning, evening: hCb.checked ? null : cur.evening });
+    saveDayData(y, m, d, { holiday: hCb.checked, sessions: hCb.checked ? [] : cur.sessions });
   };
 
-  // 朝練・夕練セクションのグレーアウト
-  const practiceSection = document.getElementById('dPracticeSection');
-  const eveningSection  = document.getElementById('dEveningSection');
-  practiceSection.style.opacity = isHoliday ? '0.35' : '1';
-  eveningSection.style.opacity  = isHoliday ? '0.35' : '1';
-  practiceSection.style.pointerEvents = isHoliday ? 'none' : '';
-  eveningSection.style.pointerEvents  = isHoliday ? 'none' : '';
+  // セッションセクション
+  const sec = document.getElementById('dSessionSection'); sec.innerHTML = '';
+  sec.style.opacity       = isHoliday ? '0.35' : '1';
+  sec.style.pointerEvents = isHoliday ? 'none' : '';
 
-  // 朝練
-  const cb = document.getElementById('dMorning');
-  cb.checked = r.morning && !isHoliday; cb.disabled = !state.isEdit || isHoliday;
-  document.getElementById('dMorningRow').className = 'row-item' + (r.morning && !isHoliday ? ' on-m' : '') + (state.isEdit && !isHoliday ? '' : ' vo');
-  cb.onchange = () => {
-    const cur = getDayData(y, m, d);
-    saveDayData(y, m, d, { holiday: cur.holiday, morning: cb.checked, evening: cur.evening });
-  };
-
-  // 夕練
-  const el = document.getElementById('dEveningList'); el.innerHTML = '';
-  TIMES_E.forEach(t => {
-    const label = document.createElement('label');
-    const on = r.evening === t && !isHoliday;
-    label.className = 'row-item' + (on ? ' on-e' : '') + (state.isEdit && !isHoliday ? '' : ' vo');
-    const rb = document.createElement('input'); rb.type = 'radio'; rb.name = 'evD'; rb.value = t; rb.checked = on; rb.disabled = !state.isEdit || isHoliday;
-    rb.style.cssText = 'width:22px;height:22px;accent-color:#378ADD;flex-shrink:0';
-    rb.addEventListener('change', () => {
-      const cur = getDayData(y, m, d);
-      saveDayData(y, m, d, { holiday: cur.holiday, morning: cur.morning, evening: t });
-    });
-    const span = document.createElement('div'); span.className = 'row-label'; span.textContent = t + ' 終了';
-    label.appendChild(rb); label.appendChild(span); el.appendChild(label);
+  const colors = ['#BA7517', '#378ADD'];
+  r.sessions.forEach((sess, idx) => {
+    const card = document.createElement('div'); card.className = 'section-card'; card.style.marginTop = '8px';
+    card.style.cssText += 'border-left:4px solid ' + colors[idx] + ';padding:10px 12px;display:flex;align-items:center;justify-content:space-between';
+    const info = document.createElement('div');
+    info.innerHTML = '<div style="font-size:15px;font-weight:600">' + sess.start + ' 〜 ' + sess.end + '</div>' +
+      '<div style="font-size:11px;color:#8e8e93">練習 ' + (idx + 1) + '</div>';
+    card.appendChild(info);
+    if (state.isEdit) {
+      const del = document.createElement('button');
+      del.textContent = '削除'; del.style.cssText = 'font-size:12px;color:#e24b4a;background:none;border:1px solid #e24b4a;border-radius:6px;padding:4px 10px';
+      del.addEventListener('click', () => {
+        const cur = getDayData(y, m, d);
+        cur.sessions.splice(idx, 1);
+        saveDayData(y, m, d, { holiday: cur.holiday, sessions: cur.sessions });
+      });
+      card.appendChild(del);
+    }
+    sec.appendChild(card);
   });
-  const clearBtn = document.getElementById('clearEveBtn');
-  clearBtn.style.display = state.isEdit && !isHoliday ? 'block' : 'none';
-  clearBtn.onclick = () => {
-    const cur = getDayData(y, m, d);
-    saveDayData(y, m, d, { holiday: cur.holiday, morning: cur.morning, evening: null });
-  };
+
+  if (state.isEdit && !isHoliday && r.sessions.length < 2) {
+    const addBtn = document.createElement('button');
+    addBtn.textContent = '＋ 練習を追加';
+    addBtn.style.cssText = 'width:100%;margin-top:8px;padding:12px;border-radius:10px;border:1.5px dashed #378ADD;color:#378ADD;background:none;font-size:14px;font-weight:600';
+    addBtn.addEventListener('click', () => {
+      const cur = getDayData(y, m, d);
+      const defaults = [{ start: '8:00', end: '10:00' }, { start: '16:00', end: '18:00' }];
+      cur.sessions.push(defaults[cur.sessions.length] || { start: '15:00', end: '17:00' });
+      saveDayData(y, m, d, { holiday: cur.holiday, sessions: cur.sessions });
+    });
+    sec.appendChild(addBtn);
+  }
 }
 
 // ===== 通知設定画面 =====
